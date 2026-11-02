@@ -116,3 +116,28 @@ describe('validarCIF', () => {
     if (!r.ok) expect(r.codigo).toBe('formato')
   })
 })
+
+describe('tabla completa de letras del DNI (los 23 restos), transcrita de forma independiente', () => {
+  // Resto 0..22 → letra. Si se altera cualquier posición de la tabla del código, esta prueba falla.
+  const TABLA = ['T', 'R', 'W', 'A', 'G', 'M', 'Y', 'F', 'P', 'D', 'X', 'B', 'N', 'J', 'Z', 'S', 'Q', 'V', 'H', 'L', 'C', 'K', 'E']
+  it.each(TABLA.map((letra, resto) => [resto, letra] as const))('número con resto %i → letra %s', (resto, letra) => {
+    const dni = String(resto).padStart(8, '0')
+    expect(letraDni(dni)).toBe(letra)
+    expect(validarDNI(`${dni}${letra}`).ok).toBe(true)
+    // misma cifra con una letra vecina incorrecta no vale
+    const otra = TABLA[(resto + 1) % 23] as string
+    expect(validarDNI(`${dni}${otra}`).ok).toBe(false)
+  })
+
+  it('el NIE usa la misma tabla con X→0, Y→1, Z→2 (restos altos incluidos)', () => {
+    // X0000021 → 00000021 → K ; Y0000021 → 10000021 mod 23 = 21? se calcula abajo de forma independiente
+    expect(validarNIE('X0000021K').ok).toBe(true)
+    expect(validarNIE('X0000022E').ok).toBe(true)
+    const indep = (pref: number, cuerpo: string) => TABLA[Number(`${pref}${cuerpo}`) % 23] as string
+    for (const [p, l] of [[0, 'X'], [1, 'Y'], [2, 'Z']] as const) {
+      for (const c of ['0000000', '1234567', '9999999', '0000021', '0000022']) {
+        expect(validarNIE(`${l}${c}${indep(p, c)}`).ok, `${l}${c}`).toBe(true)
+      }
+    }
+  })
+})
