@@ -1,6 +1,6 @@
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { axeSinContraste as axe } from '../axe'
+import { axeSinContraste as axe, TIMEOUT_AXE } from '../axe'
 import { describe, expect, it, vi } from 'vitest'
 import { ListaDia } from '../../src/ui/ListaDia'
 import { adulto, reserva } from '../fixtures'
@@ -79,7 +79,7 @@ describe('ListaDia', () => {
     expect(screen.getByText('No hay entradas previstas este día.')).toBeInTheDocument()
   })
 
-  it('sin violaciones de accesibilidad (axe)', async () => {
+  it('sin violaciones de accesibilidad (axe)', { timeout: TIMEOUT_AXE }, async () => {
     const { container } = render(<ListaDia {...props([completa, pendiente, exportada, proxima, vencida])} />)
     expect(await axe(container)).toHaveNoViolations()
   })

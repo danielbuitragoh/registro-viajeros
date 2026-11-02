@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it } from 'vitest'
-import { axeSinContraste as axe } from '../axe'
+import { axeSinContraste as axe, TIMEOUT_AXE } from '../axe'
 import { Huesped } from '../../src/ui/Huesped'
 import { crearDatosEnlace, generarClaveEnlace } from '../../src/huesped/enlace'
 import { descifrarFicha } from '../../src/huesped/ficha'
@@ -86,7 +86,7 @@ describe('Modo huésped — flujo completo', () => {
     expect(screen.getByRole('button', { name: 'Terminar y obtener el código' })).toBeEnabled()
   })
 
-  it('sin violaciones de accesibilidad (axe) en inicio y formulario', async () => {
+  it('sin violaciones de accesibilidad (axe) en inicio y formulario', { timeout: TIMEOUT_AXE }, async () => {
     const user = userEvent.setup()
     const { container } = render(<Huesped datos={datos} />)
     expect(await axe(container)).toHaveNoViolations()

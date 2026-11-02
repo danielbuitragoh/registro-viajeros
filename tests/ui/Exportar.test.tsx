@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { axeSinContraste as axe } from '../axe'
+import { axeSinContraste as axe, TIMEOUT_AXE } from '../axe'
 import { Exportar } from '../../src/ui/Exportar'
 import { adulto, establecimiento, reserva } from '../fixtures'
 
@@ -73,7 +73,7 @@ describe('Exportar', () => {
     expect(screen.getByRole('button', { name: 'Validar y generar fichero' })).toBeDisabled()
   })
 
-  it('sin violaciones de accesibilidad (axe)', async () => {
+  it('sin violaciones de accesibilidad (axe)', { timeout: TIMEOUT_AXE }, async () => {
     const user = userEvent.setup()
     const { container } = render(<Exportar reservas={[buena, mala]} establecimiento={establecimiento()} ahora={ahora} onExportadas={vi.fn()} onIrAjustes={vi.fn()} />)
     await user.click(screen.getByLabelText(/MALA/))

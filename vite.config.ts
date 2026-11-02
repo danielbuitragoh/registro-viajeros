@@ -46,5 +46,7 @@ export default defineConfig({
     globals: true,
     setupFiles: ['./tests/setup.ts'],
     include: ['tests/**/*.test.{ts,tsx}'],
+    // Las pruebas de interfaz con IndexedDB/crypto/axe son más lentas en runners compartidos de CI.
+    testTimeout: 15_000,
   },
 })

@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { axeSinContraste as axe } from '../axe'
+import { axeSinContraste as axe, TIMEOUT_AXE } from '../axe'
 import { describe, expect, it, vi, type Mock } from 'vitest'
 import { FormularioViajero, viajeroVacio } from '../../src/ui/FormularioViajero'
 import type { Viajero } from '../../src/domain/tipos'
@@ -125,7 +125,7 @@ describe('FormularioViajero (huésped)', () => {
     expect(screen.getAllByText(/This field is required/).length).toBeGreaterThan(0)
   })
 
-  it('sin violaciones de accesibilidad (axe), también con errores visibles', async () => {
+  it('sin violaciones de accesibilidad (axe), también con errores visibles', { timeout: TIMEOUT_AXE }, async () => {
     const user = userEvent.setup()
     const { container } = render(<FormularioViajero {...base()} />)
     expect(await axe(container)).toHaveNoViolations()

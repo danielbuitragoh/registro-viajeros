@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { axeSinContraste as axe } from '../axe'
+import { axeSinContraste as axe, TIMEOUT_AXE } from '../axe'
 import { describe, expect, it, vi } from 'vitest'
 import { Acceso } from '../../src/ui/Acceso'
 
@@ -59,7 +59,7 @@ describe('Acceso — abrir', () => {
     await vi.waitFor(() => expect(screen.queryByRole('alert')).not.toBeInTheDocument())
   })
 
-  it('sin violaciones de accesibilidad (axe)', async () => {
+  it('sin violaciones de accesibilidad (axe)', { timeout: TIMEOUT_AXE }, async () => {
     const { container } = render(<Acceso modo="crear" onCrear={vi.fn()} onAbrir={vi.fn()} />)
     expect(await axe(container)).toHaveNoViolations()
   })
