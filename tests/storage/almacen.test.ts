@@ -43,22 +43,22 @@ describe('Almacen — creación y desbloqueo', () => {
 
   it('desbloquea con la contraseña correcta y rechaza la incorrecta', async () => {
     const a = await Almacen.abrir(nombre)
-    await a.crear('buena', opts)
+    await a.crear('clave-buena', opts)
     a.bloquear()
-    expect(await a.desbloquear('mala')).toBe(false)
+    expect(await a.desbloquear('clave-mala-1')).toBe(false)
     expect(a.desbloqueado).toBe(false)
-    expect(await a.desbloquear('buena')).toBe(true)
+    expect(await a.desbloquear('clave-buena')).toBe(true)
     expect(a.desbloqueado).toBe(true)
   })
 
   it('persiste entre aperturas (otra instancia sobre la misma base)', async () => {
     const a = await Almacen.abrir(nombre)
-    await a.crear('buena', opts)
+    await a.crear('clave-buena', opts)
     await a.guardar('reservas', 'r1', { nombre: 'Lucía' })
     a.cerrar()
     const b = await Almacen.abrir(nombre)
     expect(await b.existe()).toBe(true)
-    expect(await b.desbloquear('buena')).toBe(true)
+    expect(await b.desbloquear('clave-buena')).toBe(true)
     expect(await b.obtener('reservas', 'r1')).toEqual({ nombre: 'Lucía' })
   })
 
