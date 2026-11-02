@@ -64,3 +64,28 @@ export async function descifrar(clave: CryptoKey, sobre: Sobre, aad?: string): P
   const params: AesGcmParams = { name: 'AES-GCM', iv: de64(sobre.iv), ...(aad ? { additionalData: enc.encode(aad) } : {}) }
   return dec.decode(await crypto.subtle.decrypt(params, clave, de64(sobre.ct)))
 }
+
+/** Variante binaria (para cargas comprimidas). Mismo esquema: AES-GCM, IV aleatorio de 12 bytes, AAD opcional. */
+export async function cifrarBytes(clave: CryptoKey, datos: Uint8Array<ArrayBuffer>, aad?: string): Promise<{ iv: Uint8Array<ArrayBuffer>; ct: Uint8Array<ArrayBuffer> }> {
+  const iv = crypto.getRandomValues(new Uint8Array(LONGITUD_IV))
+  const params: AesGcmParams = { name: 'AES-GCM', iv, ...(aad ? { additionalData: enc.encode(aad) } : {}) }
+  return { iv, ct: new Uint8Array(await crypto.subtle.encrypt(params, clave, datos)) }
+}
+
+export async function descifrarBytes(clave: CryptoKey, iv: Uint8Array<ArrayBuffer>, ct: Uint8Array<ArrayBuffer>, aad?: string): Promise<Uint8Array<ArrayBuffer>> {
+  const params: AesGcmParams = { name: 'AES-GCM', iv, ...(aad ? { additionalData: enc.encode(aad) } : {}) }
+  return new Uint8Array(await crypto.subtle.decrypt(params, clave, ct))
+}
+
+export const LONGITUD_IV_BYTES = LONGITUD_IV
+
+/** Base64 URL-safe sin relleno. */
+export function a64url(bytes: Uint8Array): string {
+  return a64(bytes).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+}
+
+export function de64url(s: string): Uint8Array<ArrayBuffer> {
+  if (!/^[A-Za-z0-9_-]*$/.test(s)) throw new Error('Base64 URL no válido')
+  const b = s.replace(/-/g, '+').replace(/_/g, '/')
+  return de64(b + '='.repeat((4 - (b.length % 4)) % 4))
+}

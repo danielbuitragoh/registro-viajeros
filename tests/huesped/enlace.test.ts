@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { crearDatosEnlace, codificarEnlace, decodificarEnlace, generarClaveEnlace } from '../../src/huesped/enlace'
-import { cifrarFicha, descifrarFicha } from '../../src/huesped/ficha'
+import { cifrarFicha, descifrarFicha, reservaDeCodigo } from '../../src/huesped/ficha'
+import { de64url } from '../../src/crypto/cifrado'
 import { adulto, establecimiento, menor, reserva } from '../fixtures'
 
 describe('enlace de huésped (sin datos personales)', () => {
@@ -67,7 +68,8 @@ describe('ficha cifrada del huésped (código de envío)', () => {
     const codigo = await cifrarFicha('res-1', clave, viajeros)
     expect(codigo.startsWith('RV1.')).toBe(true)
     expect(codigo).toMatch(/^RV1\.[A-Za-z0-9_-]+$/)
-    for (const s of ['Lucía', '12345678Z', 'Prueba']) expect(atob(codigo.slice(4).replace(/-/g, '+').replace(/_/g, '/') + '==')).not.toContain(s)
+    const bruto = String.fromCharCode(...de64url(codigo.slice(4)))
+    for (const s of ['Lucía', '12345678Z', 'Prueba']) expect(bruto).not.toContain(s)
   })
 
   it('con la clave equivocada falla', async () => {
@@ -85,6 +87,12 @@ describe('ficha cifrada del huésped (código de envío)', () => {
     await expect(descifrarFicha(codigo.slice(0, -6) + 'AAAAAA', clave, 'res-1')).rejects.toThrow()
     await expect(descifrarFicha('hola', clave, 'res-1')).rejects.toThrow(/código/i)
     await expect(descifrarFicha('RV1.@@@', clave, 'res-1')).rejects.toThrow()
+  })
+
+  it('recepción puede saber a qué reserva pertenece un código sin descifrarlo', async () => {
+    const codigo = await cifrarFicha('res-77', clave, viajeros)
+    expect(reservaDeCodigo(codigo)).toBe('res-77')
+    expect(() => reservaDeCodigo('basura')).toThrow(/código/i)
   })
 
   it('marca las fichas como procedentes del huésped', async () => {

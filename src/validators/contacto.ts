@@ -3,7 +3,7 @@
 export type ResultadoContacto = { ok: true; normalizado: string } | { ok: false }
 
 export function validarTelefono(entrada: string): ResultadoContacto {
-  const limpio = entrada.trim().replace(/[\s().\-]/g, '')
+  const limpio = entrada.trim().replace(/[\s().-]/g, '')
   if (!/^\+?\d+$/.test(limpio)) return { ok: false }
   const digitos = limpio.replace('+', '').length
   if (digitos < 6 || digitos > 15 || limpio.length > 20) return { ok: false }
