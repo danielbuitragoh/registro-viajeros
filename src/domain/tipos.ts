@@ -107,6 +107,8 @@ export interface Incidencia {
   params?: Record<string, string | number>
   /** Si procede de la ficha de un viajero concreto. */
   viajeroId?: string
+  /** Si procede de una reserva concreta (se rellena al exportar varias a la vez). */
+  reservaId?: string
 }
 
 export type TipoComunicacion = 'partes' | 'reservas'
