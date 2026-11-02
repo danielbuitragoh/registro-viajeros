@@ -1,0 +1,312 @@
+import { useMemo, useRef, useState } from 'react'
+import type { Establecimiento, Incidencia } from '../domain/tipos'
+import { ANIOS_CONSERVACION, DIAS_AVISO_PURGA, fechaPurga } from '../domain/plazos'
+import { TIPO_ESTABLECIMIENTO } from '../oficial/codigos'
+import { alfa3Espana, paisesOrdenados } from '../oficial/paises'
+import { etiquetaCampo, mensajeIncidencia } from '../i18n/mensajes'
+import { validarEstablecimiento } from '../exportador'
+import { validarDireccion } from '../validators/direccion'
+import { validarCIF, validarDNI, validarNIE } from '../validators/documentos'
+import { exportarCopia, importarCopia } from '../storage/copia'
+import { LONGITUD_MINIMA_PASSWORD } from '../storage/almacen'
+import { useApp } from '../app/AppContext'
+import { Entrada, Grupo, Selector } from './campos'
+import { fechaCorta } from './formato'
+
+const vacio = (s: string | undefined) => s === undefined || s.trim() === ''
+
+export function validarAjustesEstablecimiento(e: Establecimiento): Incidencia[] {
+  const out: Incidencia[] = []
+  if (vacio(e.nombre)) out.push({ campo: 'nombre_establecimiento', codigo: 'requerido', gravedad: 'error' })
+  else if (e.nombre.length > 50) out.push({ campo: 'nombre_establecimiento', codigo: 'longitud_max', gravedad: 'error', params: { max: 50 } })
+  // El código de establecimiento no es obligatorio aquí (hace falta para exportar partes; se valida allí).
+  if (!vacio(e.codigoEstablecimiento)) out.push(...validarEstablecimiento({ ...e }, 'partes').filter((i) => i.campo === 'codigoEstablecimiento'))
+  if (!vacio(e.nifCif)) {
+    const v = e.nifCif as string
+    if (!(validarCIF(v).ok || validarDNI(v).ok || validarNIE(v).ok)) out.push({ campo: 'nifCif', codigo: 'cif_invalido', gravedad: 'error' })
+  }
+  const d = e.direccion
+  if (d && [d.direccion, d.codigoPostal, d.codigoMunicipio, d.nombreMunicipio].some((x) => !vacio(x))) {
+    for (const i of validarDireccion(d)) out.push({ ...i, campo: `direccion.${i.campo}` })
+  }
+  return out
+}
+
+function descargarTexto(nombre: string, contenido: string, tipo: string) {
+  const url = URL.createObjectURL(new Blob([contenido], { type: tipo }))
+  const a = document.createElement('a')
+  a.href = url
+  a.download = nombre
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+export function Ajustes() {
+  const app = useApp()
+  return (
+    <section aria-labelledby="t-ajustes">
+      <h1 id="t-ajustes">Ajustes</h1>
+      <FormEstablecimiento />
+      <Seguridad />
+      <Copias />
+      <Conservacion />
+      <Acerca />
+      {app.fase === 'listo' && <ZonaPeligro />}
+    </section>
+  )
+}
+
+function FormEstablecimiento() {
+  const app = useApp()
+  const [e, setE] = useState<Establecimiento>(
+    app.establecimiento ?? { codigoEstablecimiento: '', nombre: '', tipo: 'HOSTAL', direccion: { direccion: '', codigoPostal: '', pais: alfa3Espana } },
+  )
+  const [intentado, setIntentado] = useState(false)
+  const [guardado, setGuardado] = useState(false)
+  const inc = useMemo(() => validarAjustesEstablecimiento(e), [e])
+  const error = (c: string) => {
+    const i = inc.find((x) => x.campo === c)
+    return intentado && i ? mensajeIncidencia(i, 'es') : undefined
+  }
+  const d = e.direccion ?? { direccion: '', codigoPostal: '', pais: alfa3Espana }
+  const setD = (k: keyof typeof d, v: string) => setE({ ...e, direccion: { ...d, [k]: v } })
+  const paises = useMemo(() => paisesOrdenados('es').map((p) => ({ valor: p.alfa3, texto: p.nombre })), [])
+
+  async function guardar(ev: React.FormEvent) {
+    ev.preventDefault()
+    setIntentado(true)
+    setGuardado(false)
+    if (inc.some((i) => i.gravedad === 'error')) return
+    await app.guardarEstablecimiento(e)
+    setGuardado(true)
+  }
+
+  return (
+    <form onSubmit={guardar} noValidate aria-labelledby="t-estab">
+      <h2 id="t-estab">Establecimiento</h2>
+      <Grupo leyenda="Identificación">
+        <Entrada id="e-nombre" etiqueta={etiquetaCampo('nombre_establecimiento', 'es')} valor={e.nombre} onCambio={(v) => setE({ ...e, nombre: v })} error={error('nombre_establecimiento')} obligatorio />
+        <Selector id="e-tipo" etiqueta={etiquetaCampo('tipo', 'es')} valor={e.tipo} onCambio={(v) => setE({ ...e, tipo: v as Establecimiento['tipo'] })} opciones={Object.entries(TIPO_ESTABLECIMIENTO).map(([k, x]) => ({ valor: k, texto: x.es }))} />
+        <Entrada id="e-codigo" etiqueta="Código de establecimiento" valor={e.codigoEstablecimiento} onCambio={(v) => setE({ ...e, codigoEstablecimiento: v })} error={error('codigoEstablecimiento')} ayuda="Lo asigna el Sistema de Hospedajes al registrar el establecimiento (máx. 10 caracteres). Necesario para exportar partes de viajeros." maxLength={10} mayusculas />
+        <Entrada id="e-arrendador" etiqueta="Código de arrendador" valor={e.codigoArrendador ?? ''} onCambio={(v) => setE({ ...e, codigoArrendador: v || undefined })} marca="opcional" ayuda="Solo para tu referencia: el documento oficial no incluye este campo, así que no se exporta." />
+        <Entrada id="e-nif" etiqueta="NIF/CIF del titular" valor={e.nifCif ?? ''} onCambio={(v) => setE({ ...e, nifCif: v || undefined })} error={error('nifCif')} marca="opcional" ayuda="Solo informativo: se comprueba la letra o dígito de control, pero no se exporta." mayusculas maxLength={12} />
+      </Grupo>
+      <Grupo leyenda="Dirección del establecimiento" ayuda="Se usa solo en reservas de hospedaje cuando no se informa el código de establecimiento.">
+        <Selector id="e-pais" etiqueta="País" valor={d.pais} onCambio={(v) => setD('pais', v)} opciones={paises} vacio="Elige una opción" error={error('direccion.pais')} />
+        <Entrada id="e-dir" etiqueta="Dirección" valor={d.direccion} onCambio={(v) => setD('direccion', v)} error={error('direccion.direccion')} autoComplete="street-address" />
+        <Entrada id="e-cp" etiqueta="Código postal" valor={d.codigoPostal} onCambio={(v) => setD('codigoPostal', v)} error={error('direccion.codigoPostal')} autoComplete="postal-code" />
+        {d.pais === alfa3Espana ? (
+          <Entrada id="e-ine" etiqueta="Código INE del municipio" valor={d.codigoMunicipio ?? ''} onCambio={(v) => setD('codigoMunicipio', v)} error={error('direccion.codigoMunicipio')} inputMode="numeric" maxLength={5} ayuda="5 dígitos (Madrid capital: 28079)." />
+        ) : (
+          <Entrada id="e-mun" etiqueta="Municipio o ciudad" valor={d.nombreMunicipio ?? ''} onCambio={(v) => setD('nombreMunicipio', v)} error={error('direccion.nombreMunicipio')} />
+        )}
+      </Grupo>
+      <div className="acciones">
+        <button type="submit" className="primario">
+          Guardar establecimiento
+        </button>
+      </div>
+      {guardado && (
+        <p role="status" className="mensaje mensaje-ok">
+          <span aria-hidden="true">✔ </span>Establecimiento guardado.
+        </p>
+      )}
+    </form>
+  )
+}
+
+function Seguridad() {
+  const app = useApp()
+  const [actual, setActual] = useState('')
+  const [nueva, setNueva] = useState('')
+  const [repite, setRepite] = useState('')
+  const [msg, setMsg] = useState<{ ok: boolean; texto: string }>()
+
+  async function cambiar(ev: React.FormEvent) {
+    ev.preventDefault()
+    setMsg(undefined)
+    if (nueva.length < LONGITUD_MINIMA_PASSWORD) return setMsg({ ok: false, texto: `La nueva contraseña debe tener al menos ${LONGITUD_MINIMA_PASSWORD} caracteres.` })
+    if (nueva !== repite) return setMsg({ ok: false, texto: 'Las contraseñas nuevas no coinciden.' })
+    try {
+      await app.almacen?.cambiarPassword(actual, nueva)
+      setActual('')
+      setNueva('')
+      setRepite('')
+      setMsg({ ok: true, texto: 'Contraseña cambiada: todos los datos se han vuelto a cifrar.' })
+    } catch (e) {
+      setMsg({ ok: false, texto: e instanceof Error ? e.message : String(e) })
+    }
+  }
+  return (
+    <form onSubmit={cambiar} noValidate aria-labelledby="t-seg">
+      <h2 id="t-seg">Seguridad</h2>
+      <p className="ayuda">El registro se bloquea solo tras 15 minutos sin actividad.</p>
+      <div className="acciones">
+        <button type="button" className="secundario" onClick={app.bloquear}>
+          Bloquear ahora
+        </button>
+      </div>
+      <Grupo leyenda="Cambiar la contraseña del establecimiento">
+        <Entrada id="p-actual" tipo="password" etiqueta="Contraseña actual" valor={actual} onCambio={setActual} autoComplete="current-password" />
+        <Entrada id="p-nueva" tipo="password" etiqueta="Contraseña nueva" valor={nueva} onCambio={setNueva} autoComplete="new-password" />
+        <Entrada id="p-repite" tipo="password" etiqueta="Repite la contraseña nueva" valor={repite} onCambio={setRepite} autoComplete="new-password" />
+      </Grupo>
+      <div className="acciones">
+        <button type="submit" className="secundario">
+          Cambiar contraseña
+        </button>
+      </div>
+      {msg && (
+        <p role={msg.ok ? 'status' : 'alert'} className={`mensaje ${msg.ok ? 'mensaje-ok' : 'mensaje-error'}`}>
+          <span aria-hidden="true">{msg.ok ? '✔ ' : '✖ '}</span>
+          {msg.texto}
+        </p>
+      )}
+    </form>
+  )
+}
+
+function Copias() {
+  const app = useApp()
+  const [passExp, setPassExp] = useState('')
+  const [passImp, setPassImp] = useState('')
+  const [modo, setModo] = useState<'fusionar' | 'reemplazar'>('fusionar')
+  const [msg, setMsg] = useState<{ ok: boolean; texto: string }>()
+  const fichero = useRef<HTMLInputElement>(null)
+
+  async function exportar(ev: React.FormEvent) {
+    ev.preventDefault()
+    setMsg(undefined)
+    try {
+      const json = await exportarCopia(app.almacen as NonNullable<typeof app.almacen>, passExp)
+      descargarTexto(`copia-registro-viajeros_${new Date().toISOString().slice(0, 10)}.json`, json, 'application/json')
+      setMsg({ ok: true, texto: 'Copia cifrada descargada. Guárdala en un lugar seguro y no pierdas su contraseña.' })
+      setPassExp('')
+    } catch (e) {
+      setMsg({ ok: false, texto: e instanceof Error ? e.message : String(e) })
+    }
+  }
+  async function importar(ev: React.FormEvent) {
+    ev.preventDefault()
+    setMsg(undefined)
+    const f = fichero.current?.files?.[0]
+    if (!f) return setMsg({ ok: false, texto: 'Elige primero el fichero de la copia.' })
+    try {
+      const r = await importarCopia(app.almacen as NonNullable<typeof app.almacen>, await f.text(), passImp, modo)
+      await app.recargar()
+      setMsg({ ok: true, texto: `Copia restaurada: ${r.reservas} ${r.reservas === 1 ? 'reserva' : 'reservas'}${r.configuracion ? ' y configuración del establecimiento' : ''}.` })
+      setPassImp('')
+    } catch (e) {
+      setMsg({ ok: false, texto: e instanceof Error ? e.message : String(e) })
+    }
+  }
+  return (
+    <section aria-labelledby="t-copias">
+      <h2 id="t-copias">Copia de seguridad cifrada</h2>
+      <form onSubmit={exportar} noValidate>
+        <Grupo leyenda="Crear copia" ayuda="Un fichero cifrado con AES-GCM. Sin su contraseña es ilegible; puede ser distinta de la del establecimiento.">
+          <Entrada id="c-pass-exp" tipo="password" etiqueta="Contraseña de la copia" valor={passExp} onCambio={setPassExp} autoComplete="new-password" />
+        </Grupo>
+        <div className="acciones">
+          <button type="submit" className="secundario">
+            Descargar copia
+          </button>
+        </div>
+      </form>
+      <form onSubmit={importar} noValidate>
+        <Grupo leyenda="Restaurar copia">
+          <div className="campo">
+            <label htmlFor="c-fichero">Fichero de la copia</label>
+            <input id="c-fichero" type="file" accept="application/json,.json" ref={fichero} />
+          </div>
+          <Entrada id="c-pass-imp" tipo="password" etiqueta="Contraseña de la copia" valor={passImp} onCambio={setPassImp} autoComplete="current-password" />
+          <Selector id="c-modo" etiqueta="Qué hacer con los datos actuales" valor={modo} onCambio={(v) => setModo(v as typeof modo)} opciones={[{ valor: 'fusionar', texto: 'Fusionar (gana la versión más reciente de cada reserva)' }, { valor: 'reemplazar', texto: 'Reemplazar todo por el contenido de la copia' }]} />
+        </Grupo>
+        <div className="acciones">
+          <button type="submit" className="secundario">
+            Restaurar copia
+          </button>
+        </div>
+      </form>
+      {msg && (
+        <p role={msg.ok ? 'status' : 'alert'} className={`mensaje ${msg.ok ? 'mensaje-ok' : 'mensaje-error'}`}>
+          <span aria-hidden="true">{msg.ok ? '✔ ' : '✖ '}</span>
+          {msg.texto}
+        </p>
+      )}
+    </section>
+  )
+}
+
+function Conservacion() {
+  const app = useApp()
+  const [msg, setMsg] = useState<string>()
+  const p = app.purga
+  return (
+    <section aria-labelledby="t-cons">
+      <h2 id="t-cons">Conservación y purga</h2>
+      <p>
+        Los datos de cada reserva se conservan <strong>{ANIOS_CONSERVACION} años desde la fecha de salida</strong> y después se eliminan automáticamente al desbloquear la aplicación. Se avisa {DIAS_AVISO_PURGA} días antes.
+      </p>
+      {p && p.conAviso.length > 0 && (
+        <div className="aviso-plazo aviso-plazo-proximo" role="status">
+          <strong>
+            <span aria-hidden="true">⚠ </span>Próximas purgas
+          </strong>
+          <ul>
+            {p.conAviso.map((r) => (
+              <li key={r.id}>
+                Reserva {r.referencia}: se eliminará el {fechaCorta(fechaPurga(r.salida))}.
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      <div className="acciones">
+        <button
+          type="button"
+          className="secundario"
+          onClick={async () => {
+            const r = await app.purgarAhora()
+            setMsg(r.eliminadas.length === 0 ? 'No hay reservas con 3 años cumplidos.' : `Se han eliminado ${r.eliminadas.length} reservas con 3 años cumplidos.`)
+          }}
+        >
+          Ejecutar purga ahora
+        </button>
+      </div>
+      {msg && (
+        <p role="status" className="mensaje mensaje-ok">
+          {msg}
+        </p>
+      )}
+    </section>
+  )
+}
+
+function Acerca() {
+  return (
+    <section aria-labelledby="t-acerca">
+      <h2 id="t-acerca">Acerca de</h2>
+      <p>
+        <strong>Herramienta no oficial.</strong> No está afiliada al Ministerio del Interior. El establecimiento sigue siendo el responsable de comunicar los datos a tiempo y de que sean correctos. Sin analítica ni llamadas externas; licencia MIT.
+      </p>
+    </section>
+  )
+}
+
+function ZonaPeligro() {
+  const app = useApp()
+  const [texto, setTexto] = useState('')
+  return (
+    <section aria-labelledby="t-peligro">
+      <h2 id="t-peligro">Borrar todos los datos de este dispositivo</h2>
+      <p>Elimina la base de datos cifrada, la configuración y todas las reservas. No se puede deshacer. Haz antes una copia de seguridad.</p>
+      <Entrada id="borrar-confirma" etiqueta="Escribe BORRAR para confirmar" valor={texto} onCambio={setTexto} />
+      <div className="acciones">
+        <button type="button" className="peligro" disabled={texto !== 'BORRAR'} onClick={() => app.destruirTodo()}>
+          Borrar todo
+        </button>
+      </div>
+    </section>
+  )
+}

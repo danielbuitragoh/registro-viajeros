@@ -83,6 +83,8 @@ export interface Reserva {
   modificadaEn: string
   /** ISO datetime de la última exportación en la que se incluyó esta reserva. */
   exportadaEn?: string
+  /** Clave (base64url, 256 bits) del enlace de huésped de esta reserva. Se guarda cifrada en el almacén. */
+  claveEnlace?: string
 }
 
 export interface Establecimiento {
