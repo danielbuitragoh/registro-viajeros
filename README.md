@@ -67,6 +67,40 @@ Y una costumbre: **Ajustes → Copia de seguridad cifrada** una vez por semana, 
 8. **Súbelo tú al portal SES.Hospedajes.** Hasta que no lo subas, la comunicación **no está hecha**, aunque la app lo marque como «exportado».
 9. **Copias de seguridad:** *Ajustes → Copia de seguridad cifrada* (descarga un fichero cifrado). Hazla periódicamente: los datos viven solo en ese dispositivo.
 
+## Códigos de municipio INE (autocompletado sin red)
+
+En recepción (y, opcionalmente, en el formulario del huésped y en *Ajustes → Establecimiento*), el campo **Nombre del municipio** sugiere municipios mientras escribes; al elegir uno, el **código INE se rellena solo**. Funciona sin conexión: la relación va dentro de la app. Busca sin tildes, con el artículo delante («Las Rozas…» aunque el INE escriba «Rozas…, Las») y por cualquier parte de un nombre bilingüe; los municipios de la provincia del código postal salen primero (solo ordena, no valida).
+
+**De dónde salen los datos: SOLO del fichero oficial del INE** «Relación de municipios y sus códigos por provincias». No se descargan ni se teclean códigos de ninguna otra fuente. **Este repositorio todavía no incluye ese fichero**, así que hoy:
+
+- la **app normal** no trae relación y el código se escribe a mano (lo indica junto al campo);
+- la **demo** usa una **muestra FICTICIA** (provincias 98 y 99, que no existen; ver `tests/fixtures/ine/LEEME-FICTICIO.md`) para que se vea cómo funciona. Los domicilios de la demo usan esos municipios inventados.
+
+### Cómo añadir el fichero oficial (una vez al año)
+
+1. Descarga de la web del INE la «Relación de municipios y sus códigos por provincias» más reciente (es la que tiene fecha a 1 de enero). Si viene en `.xls` antiguo, ábrelo con Excel o LibreOffice y guárdalo como `.xlsx` **sin tocar nada más**.
+2. Cópialo **tal cual** en `docs/oficial/ine/` (p. ej. `docs/oficial/ine/diccionario26.xlsx`).
+3. Ejecuta (Node 22.18 o posterior):
+   ```bash
+   npm run ine:importar -- docs/oficial/ine/diccionario26.xlsx
+   ```
+   Si el título del fichero no trae la fecha, añade `--fecha 2026-01-01` (la que figure en la web del INE).
+4. Se crea `src/oficial/ine/municipios-AAAA-MM-DD.json` y el script lista las **altas, bajas (p. ej. fusiones) y cambios de nombre** respecto a la relación anterior. Ejecuta `npm test` y haz commit del fichero del INE **y** del JSON juntos.
+
+Qué comprueba el importador: que estén las columnas `CPRO`, `CMUN` y `NOMBRE` (en cualquier fila y orden), que cada código tenga sus cifras, que no haya códigos repetidos y que la fecha sea coherente. **Si algo no cuadra, se detiene y lo explica; nunca adivina.** El código de 5 dígitos es `CPRO` (2) + `CMUN` (3); el dígito de control `DC` no se usa (ver P15). Una prueba de guardia comprueba que **cada JSON de `src/oficial/ine/` se regenera idéntico desde su fichero en `docs/oficial/ine/` (misma huella SHA-256)** y que todo fichero oficial tiene su JSON: así nadie puede colar códigos que no salgan del INE. Si hay relación oficial, la muestra ficticia no se usa nunca, ni siquiera en la demo.
+
+> **Aviso honesto:** el lector se ha probado con muestras ficticias que imitan la forma de la relación (fila de título con la fecha, cabecera `CODAUTO · CPRO · CMUN · DC · NOMBRE`), escritas con otro programa (openpyxl) y en CSV Windows-1252. **No se ha probado con el fichero real del INE**: la primera vez, revisa el resumen que imprime el script (nº de municipios, fecha) antes de hacer commit.
+
+### Municipios que cambian de código (fusiones, altas) según la fecha de la relación
+
+La relación es una foto a una fecha. La app usa la **más reciente** que tenga y lo dice junto al campo («relación del INE a 01/01/2026»). Para un código escrito o importado de una ficha, la revisión del parte da **avisos, nunca errores** (un aviso no bloquea la exportación):
+
+- **no figura** en la relación → puede ser un error… o un municipio dado de alta después de esa fecha;
+- **figuraba en una relación anterior y ya no** (si conservas también la del año anterior en `docs/oficial/ine/` y su JSON) → probablemente una fusión: busca el municipio actual;
+- **el nombre escrito no es el de ese código** → revisa uno de los dos.
+
+Conserva al menos la relación del año anterior para que la app detecte las bajas. Las relaciones son pequeñas (≈ 50 kB comprimidas cada una) y se cargan solo al usarlas.
+
 ## Decisiones de diseño
 
 - **Local-first y sin servidor.** No hay backend, cuentas, analítica ni llamadas externas (la política de seguridad del navegador, CSP, solo permite recursos propios). Es la única forma de que el hostal no dependa de —ni entregue sus datos a— un tercero. Coste: los datos viven en un dispositivo, así que importa la copia de seguridad.
@@ -93,7 +127,7 @@ Fuente única de verdad: [`docs/oficial/Instrucciones.pdf`](docs/oficial/Instruc
 | P1 | El PDF no incluye XSD ni espacio de nombres ni declaración XML | Emite `<?xml … UTF-8?>` y elementos sin namespace. **Contrastar con la plantilla real del portal** |
 | P2 | La tabla del §3 dice `documento`; la figura 1 y el §4 dicen `numeroDocumento` | Usa `numeroDocumento` |
 | P3 | Formato del campo `internet` (Booleano) sin definir | No lo emite (es opcional) |
-| P4 | No hay tabla de municipios INE ni de países | INE: solo formato (5 dígitos). Países: lista ISO 3166-1 (norma citada por el PDF), revisar vigencia |
+| P4 | No hay tabla de municipios INE ni de países | INE: formato (5 dígitos) y, si se añade el fichero oficial del INE, autocompletado y avisos ([ver arriba](#códigos-de-municipio-ine-autocompletado-sin-red)). Países: lista ISO 3166-1 (norma citada por el PDF), revisar vigencia |
 | P5 | El PDF no tiene «código de arrendador» | Dato interno opcional, **no se exporta** |
 | P6 | «Mayor de edad» sin definir | 18 años a la fecha de entrada |
 | P7 | `parentesco` es un solo campo por persona sin decir a qué menor se refiere | Se informa en el adulto acompañante; con varios menores y parentescos distintos, aviso |
@@ -102,6 +136,7 @@ Fuente única de verdad: [`docs/oficial/Instrucciones.pdf`](docs/oficial/Instruc
 | P10 | Formato exacto del soporte y de pasaportes por país | Soporte alfanumérico ≤ 9. Pasaporte por país **orientativo** (aviso, nunca bloquea) |
 | P12 | Cómputo de las 24 h y de los 3 años (viene del RD, no del PDF) | 24 h desde la entrada prevista; 3 años desde la salida. Confirmar con asesoría |
 | P14 | Subida al portal y errores que devuelve el sistema | Fuera de alcance: la subida es manual |
+| P15 | El PDF dice «código INE, 5 dígitos» pero no si incluye el dígito de control del INE | Usa CPRO (2) + CMUN (3), sin el dígito de control. Confirmar con el portal |
 
 Además: el «canal de reserva» y la habitación son datos internos y no se exportan; los NIF que empiezan por K, L o M se aceptan por formato sin verificar el control; **no se ha podido probar el fichero contra el portal real**.
 
@@ -131,10 +166,11 @@ npm run e2e        # Playwright: flujo completo en Chromium real + guardia de «
 npm run lint       # ESLint (incluye jsx-a11y)
 npm run typecheck  # tsc estricto
 npm run build      # build de producción (PWA)
+npm run ine:importar -- docs/oficial/ine/<fichero del INE>   # relación de municipios → src/oficial/ine/
 VITE_DEMO=true npm run build   # build de la demo con datos ficticios
 ```
 
-Estructura: `src/oficial` (tablas del PDF) · `src/validators` · `src/exportador` (módulo aislado) · `src/crypto` · `src/storage` (IndexedDB cifrado, purga, copias) · `src/huesped` (enlace, código de envío, ficha imprimible y PDF) · `src/qr` (lector) · `src/i18n` (un fichero por idioma) · `src/ui` · `e2e` (Playwright) · `docs/oficial`.
+Estructura: `src/oficial` (tablas del PDF; `src/oficial/ine`, relaciones de municipios generadas) · `src/ine` (búsqueda y estado de códigos INE) · `scripts/` (importador del INE) · `src/validators` · `src/exportador` (módulo aislado) · `src/crypto` · `src/storage` (IndexedDB cifrado, purga, copias) · `src/huesped` (enlace, código de envío, ficha imprimible y PDF) · `src/qr` (lector) · `src/i18n` (un fichero por idioma) · `src/ui` · `e2e` (Playwright) · `docs/oficial`.
 
 **Pruebas end-to-end** (`e2e/`, sobre el build de producción con su CSP): (1) flujo completo: crear reserva → enlace → ficha en un móvil emulado (en francés) y descarga del PDF → **recepción lee el QR con la cámara** (Chromium con una cámara falsa que muestra el QR) → parte completo → exportar → XML comprobado con `DOMParser`; (2) la demo en móvil: la lista no se mueve y cada «Abrir» abre su reserva; (3) recorrido por todas las pantallas y los 6 idiomas. Una **guardia automática** hace fallar cualquier prueba si la página intenta una petición a otro origen o el navegador informa de una violación de la CSP, y una prueba de control demuestra que la guardia sí lo detecta.
 

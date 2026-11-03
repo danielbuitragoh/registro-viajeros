@@ -40,7 +40,7 @@ Cada punto está marcado en el código con `// PENDIENTE-OFICIAL:` y listado en 
 | P1 | No se incluye el XSD ni la plantilla descargable: no hay **espacio de nombres**, prefijos ni declaración XML. | Emite `<?xml version="1.0" encoding="UTF-8"?>` y elementos sin espacio de nombres. **Contrastar con la plantilla real del portal antes de enviar.** |
 | P2 | Discrepancia §3: la tabla llama `documento` al campo que la figura 1 y el §4 llaman `numeroDocumento`. | Usa `numeroDocumento` (figura = esquema). |
 | P3 | No se define el formato del campo `internet` (Booleano): ¿`true/false`, `1/0`, `S/N`? | **No se emite** (es opcional). |
-| P4 | No hay tabla de **códigos de municipio INE** ni de países (solo se cita ISO 3166-1 alfa-3 y "INE, 5 dígitos"). | El INE se valida solo por formato (5 dígitos). Los países usan la lista ISO 3166-1 (estándar citado, no incluido en el PDF); revisar vigencia. |
+| P4 | No hay tabla de **códigos de municipio INE** ni de países (solo se cita ISO 3166-1 alfa-3 y "INE, 5 dígitos"). | El INE se valida por formato (5 dígitos). Si se añade el fichero oficial del INE en `docs/oficial/ine/` (README → «Códigos de municipio INE»), autocompletado y **avisos** (no errores) de códigos que no figuran o se dieron de baja. Sin ese fichero no hay ningún código en la app. Los países usan la lista ISO 3166-1 (estándar citado, no incluido en el PDF); revisar vigencia. |
 | P5 | El documento **no incluye el "código de arrendador"** (solo `codigoEstablecimiento`). | Se guarda como dato interno opcional y **no se exporta**. |
 | P6 | No define **cuándo es "mayor de edad"** ni respecto a qué fecha se calcula. | 18 años (mayoría de edad en España), calculada a la fecha de entrada. |
 | P7 | `parentesco` es un único campo por persona sin indicar a qué menor se refiere. | Se exporta en el adulto designado como acompañante; con varios menores y parentescos distintos se avisa. |
@@ -51,3 +51,4 @@ Cada punto está marcado en el código con `// PENDIENTE-OFICIAL:` y listado en 
 | P12 | No dice desde cuándo cuentan las 24 h ni los 3 años de conservación (eso es el RD 933/2021, no este documento). | 24 h desde la entrada prevista; 3 años desde la fecha de salida. Confirmar con el RD y con asesoría. |
 | P13 | Canal de reserva (Booking, directo…) no existe en el fichero. | Dato interno, no se exporta. |
 | P14 | Cómo/dónde se sube el fichero y qué errores devuelve el sistema: fuera del alcance del documento. | La app solo genera y valida el fichero; el envío es manual en el portal. |
+| P15 | "Código INE, 5 dígitos" (§7.1): no dice si incluye el dígito de control (DC) que el INE publica junto a CPRO y CMUN. | Se usa CPRO (2) + CMUN (3) = 5 dígitos, sin DC (es lo único que cuadra con «5 dígitos»). Confirmar con el portal. |
