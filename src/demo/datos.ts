@@ -4,7 +4,7 @@
  * el aviso de 24 h y el de purga se vean siempre en funcionamiento.
  */
 import type { Establecimiento, Reserva, Viajero } from '../domain/tipos'
-import { letraDni } from '../validators/documentos'
+import { letraDni } from '@danielbuitragoh/documentos-es'
 
 export const PASSWORD_DEMO = 'demo-hostal-2026'
 

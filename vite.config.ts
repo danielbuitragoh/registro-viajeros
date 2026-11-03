@@ -1,4 +1,5 @@
 /// <reference types="vitest/config" />
+import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
@@ -14,6 +15,11 @@ const CSP =
 
 export default defineConfig({
   base,
+  // El paquete del workspace (packages/documentos-es) se importa por su nombre, como cualquier dependencia, pero aquí se
+  // resuelve a su código fuente: así la app y las pruebas no dependen de haber compilado antes su `dist`.
+  resolve: {
+    alias: { '@danielbuitragoh/documentos-es': fileURLToPath(new URL('./packages/documentos-es/src/index.ts', import.meta.url)) },
+  },
   // Dos entradas más: la página de presentación (estática, sin JavaScript) en español e inglés
   build: {
     rollupOptions: {

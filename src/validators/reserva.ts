@@ -1,7 +1,7 @@
 import { esCodigo, TIPO_PAGO } from '../oficial/codigos'
 import type { Incidencia, Reserva, TipoComunicacion } from '../domain/tipos'
 import { aFechaHoraOficial, esFechaHoraValida, esFechaValida, esMayorDeEdad, hoyISO, soloFecha } from './fechas'
-import { normalizarDocumento } from './documentos'
+import { normalizarDocumento } from '@danielbuitragoh/documentos-es'
 import { validarViajero } from './viajero'
 import type { ConsultaIne } from '../ine/relacion'
 

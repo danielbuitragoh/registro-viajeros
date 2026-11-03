@@ -1,0 +1,88 @@
+name: Publicar documentos-es en npm
+
+# Solo se ejecuta al subir una etiqueta documentos-es-v* (p. ej. documentos-es-v0.1.0). Fusionar un PR no publica nada.
+# Además, solo publica si existe el secreto NPM_TOKEN; si no, avisa y termina sin publicar.
+on:
+  push:
+    tags: ['documentos-es-v*']
+
+permissions:
+  contents: read
+  id-token: write # necesario para la provenance (firma del origen del paquete en npm)
+
+concurrency:
+  group: publicar-documentos-es
+  cancel-in-progress: false
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      PAQUETE: '@danielbuitragoh/documentos-es'
+    steps:
+      - name: Comprobar que existe el secreto NPM_TOKEN
+        run: |
+          if [ -z "$NPM_TOKEN" ]; then
+            echo "::warning title=No se publica::No existe el secreto NPM_TOKEN. Créalo en Settings → Secrets and variables → Actions y vuelve a lanzar este flujo (Re-run) o sube una etiqueta nueva."
+            echo "## No se ha publicado nada" >> "$GITHUB_STEP_SUMMARY"
+            echo "Falta el secreto \`NPM_TOKEN\`. Ver los pasos en \`packages/documentos-es/README.md\`." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - uses: actions/checkout@v7
+        if: env.NPM_TOKEN != ''
+        with:
+          fetch-depth: 0 # hace falta el historial para comprobar que la etiqueta es de main
+
+      - uses: actions/setup-node@v7
+        if: env.NPM_TOKEN != ''
+        with:
+          node-version: 22
+          cache: npm
+          registry-url: https://registry.npmjs.org
+
+      - name: La etiqueta debe ser de main y coincidir con la versión del paquete
+        if: env.NPM_TOKEN != ''
+        run: |
+          git fetch --no-tags origin main
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
+            echo "::error::La etiqueta $GITHUB_REF_NAME no apunta a un commit de main. Fusiona el PR y vuelve a crear la etiqueta desde main."
+            exit 1
+          fi
+          VERSION=$(node -p "require('./packages/documentos-es/package.json').version")
+          if [ "$GITHUB_REF_NAME" != "documentos-es-v$VERSION" ]; then
+            echo "::error::La etiqueta $GITHUB_REF_NAME no coincide con la versión del paquete ($VERSION). Esperaba documentos-es-v$VERSION."
+            exit 1
+          fi
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+
+      - name: Instalar dependencias
+        if: env.NPM_TOKEN != ''
+        run: npm ci
+
+      - name: Tipos
+        if: env.NPM_TOKEN != ''
+        run: npm run typecheck -w "$PAQUETE"
+
+      - name: Pruebas con umbral de cobertura
+        if: env.NPM_TOKEN != ''
+        run: npm run test:coverage -w "$PAQUETE"
+
+      - name: Compilar y verificar el paquete empaquetado
+        if: env.NPM_TOKEN != ''
+        run: |
+          npm run build -w "$PAQUETE"
+          npm run verificar -w "$PAQUETE"
+
+      - name: Publicar en npm (con provenance)
+        if: env.NPM_TOKEN != ''
+        env:
+          NODE_AUTH_TOKEN: ${{ env.NPM_TOKEN }}
+        run: |
+          # Las versiones con guion (0.2.0-beta.1) salen con la etiqueta «next» para no convertirse en «latest»
+          TAG=latest
+          case "$VERSION" in *-*) TAG=next ;; esac
+          npm publish -w "$PAQUETE" --access public --provenance --tag "$TAG"
+          echo "## Publicado" >> "$GITHUB_STEP_SUMMARY"
+          echo "\`$PAQUETE@$VERSION\` (etiqueta npm: \`$TAG\`) → https://www.npmjs.com/package/$PAQUETE" >> "$GITHUB_STEP_SUMMARY"
