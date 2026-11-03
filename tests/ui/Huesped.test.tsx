@@ -13,7 +13,7 @@ const datos = crearDatosEnlace(establecimiento(), reserva({ id: 'res-test', numP
 beforeEach(() => sessionStorage.clear())
 
 async function anadirAdulto(user: ReturnType<typeof userEvent.setup>, nombre = 'Lucía') {
-  await user.click(screen.getByRole('button', { name: 'Añadir otro viajero' }))
+  await user.click(screen.getByRole('button', { name: /^Añadir (otro )?viajero$/ }))
   await user.type(screen.getByLabelText('Nombre'), nombre)
   await user.type(screen.getByLabelText('Primer apellido'), 'Prueba')
   await user.type(screen.getByLabelText(/^Segundo apellido/), 'Ejemplo')
@@ -67,6 +67,16 @@ describe('Modo huésped — flujo completo', () => {
     expect(screen.getByText('Todavía no has añadido ningún viajero.')).toBeInTheDocument()
   })
 
+  it('el botón dice «Añadir viajero» con la lista vacía y «Añadir otro viajero» cuando ya hay alguno', async () => {
+    const user = userEvent.setup()
+    render(<Huesped datos={datos} />)
+    await user.click(screen.getByRole('button', { name: 'Empezar' }))
+    expect(screen.getByRole('button', { name: 'Añadir viajero' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Añadir otro viajero' })).not.toBeInTheDocument()
+    await anadirAdulto(user)
+    expect(await screen.findByRole('button', { name: 'Añadir otro viajero' })).toBeInTheDocument()
+  })
+
   it('cambia de idioma: textos y atributo lang del documento', async () => {
     const user = userEvent.setup()
     render(<Huesped datos={datos} />)
@@ -91,7 +101,7 @@ describe('Modo huésped — flujo completo', () => {
     const { container } = render(<Huesped datos={datos} />)
     expect(await axe(container)).toHaveNoViolations()
     await user.click(screen.getByRole('button', { name: 'Empezar' }))
-    await user.click(screen.getByRole('button', { name: 'Añadir otro viajero' }))
+    await user.click(screen.getByRole('button', { name: 'Añadir viajero' }))
     expect(await axe(container)).toHaveNoViolations()
   })
 })

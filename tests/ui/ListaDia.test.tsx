@@ -74,6 +74,32 @@ describe('ListaDia', () => {
     expect(p.onNueva).toHaveBeenCalled()
   })
 
+  it('orden estable: con la misma hora de entrada, el orden no depende del orden en que llegan los datos', () => {
+    const a = reserva({ id: 'id-b', referencia: 'AAA', entrada: '2026-11-02T15:00', habitacion: '201' })
+    const b = reserva({ id: 'id-a', referencia: 'BBB', entrada: '2026-11-02T15:00', habitacion: '202' })
+    const orden = () => screen.getAllByRole('button', { name: /Abrir reserva/ }).map((x) => x.textContent)
+    const { unmount } = render(<ListaDia {...props([a, b])} />)
+    const primero = orden()
+    unmount()
+    render(<ListaDia {...props([b, a])} />)
+    expect(orden()).toEqual(primero)
+    expect(primero).toEqual(['Abrir reserva AAA', 'Abrir reserva BBB'])
+  })
+
+  it('cada botón «Abrir» abre la reserva de SU fila, también tras recibir nuevas reservas que se intercalan', async () => {
+    const user = userEvent.setup()
+    const p = props([completa, exportada])
+    const { rerender } = render(<ListaDia {...p} />)
+    rerender(<ListaDia {...p} reservas={[completa, exportada, pendiente, proxima]} />)
+    for (const [ref, id] of [['COMPLETA', 'c'], ['EXPO', 'e'], ['PEND', 'p'], ['PROX', 'x']] as const) {
+      const boton = screen.getByRole('button', { name: `Abrir reserva ${ref}` })
+      // la fila del botón es la de esa reserva
+      expect(within(boton.closest('tr') as HTMLElement).getByText(ref === 'COMPLETA' ? '101' : ref === 'EXPO' ? '103' : ref === 'PEND' ? '102' : '104')).toBeInTheDocument()
+      await user.click(boton)
+      expect(p.onAbrir).toHaveBeenLastCalledWith(id)
+    }
+  })
+
   it('día sin entradas', () => {
     render(<ListaDia {...props([completa], '2026-12-25')} />)
     expect(screen.getByText('No hay entradas previstas este día.')).toBeInTheDocument()
