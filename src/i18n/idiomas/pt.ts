@@ -74,7 +74,7 @@ export const pt: Record<ClaveTexto, string> = {
   'f.menor.parentesco': 'Parentesco do adulto com o menor',
   'f.menor.sin_adultos': 'Adicione primeiro um adulto da reserva.',
   'f.misma_direccion': 'Usar a mesma morada do viajante 1',
-  'f.municipio_ine_ayuda': 'Código INE do município (5 algarismos). Se não o souber, deixe em branco: a receção completa.',
+  'f.municipio_ine_ayuda': 'Código INE do município (5 algarismos). Se não o souber, deixe em branco: a receção preenche-o.',
   'f.municipio_nombre_es': 'Nome do município',
   'f.resumen_errores': '{n} dados a rever',
   'f.resumen_errores_uno': '1 dado a rever',

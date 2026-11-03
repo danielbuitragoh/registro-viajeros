@@ -54,7 +54,7 @@ export const fr: Record<ClaveTexto, string> = {
   'h.ficha.titulo': 'Fiche des voyageurs (pré-enregistrement)',
   'h.ficha.qr': 'Code chiffré pour la réception',
   'h.ficha.qr_ayuda': 'La réception peut scanner ce QR pour importer les fiches.',
-  'h.ficha.pie': 'Générée sur le téléphone du voyageur ; envoyée à aucun serveur. Outil non officiel.',
+  'h.ficha.pie': 'Générée sur le téléphone du voyageur ; elle n’a été envoyée à aucun serveur. Outil non officiel.',
   'h.ficha.pagina': 'Page {n}/{total}',
   'h.ficha.sustituidos': 'Certains caractères ne peuvent pas être affichés dans le PDF et apparaissent comme « ? ». Utilisez « Imprimer la fiche » pour les conserver.',
   'h.enlace_invalido.titulo': 'Lien non valide',
