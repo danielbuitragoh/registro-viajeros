@@ -7,6 +7,7 @@ import type { DatosEnlace, Idioma } from '../huesped/enlace'
 import { IDIOMAS, esIdioma, idiomaDelNavegador, t, type ClaveTexto } from '../i18n/textos'
 import { edadEn, esFechaValida, soloFecha } from '../validators/fechas'
 import { FormularioViajero, viajeroVacio } from './FormularioViajero'
+import { Logo } from './Icono'
 import { Qr } from './Qr'
 
 const MAX_CARACTERES_QR = 1800
@@ -60,8 +61,13 @@ export function Huesped({ datos }: { datos: DatosEnlace }) {
         {tr('comun.saltar')}
       </a>
       <header className="cabecera">
-        <p className="marca-app">{tr('app.titulo')}</p>
-        <SelectorIdioma idioma={idioma} onCambio={setIdioma} />
+        <div className="cabecera-dentro">
+          <p className="marca-app">
+            <Logo />
+            {tr('app.titulo')}
+          </p>
+          <SelectorIdioma idioma={idioma} onCambio={setIdioma} />
+        </div>
       </header>
       <main id="contenido" tabIndex={-1} className="pagina-huesped" lang={idioma}>
         {pantalla.tipo === 'inicio' && (
