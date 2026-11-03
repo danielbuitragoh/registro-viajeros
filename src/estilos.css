@@ -340,3 +340,4 @@ tbody tr:last-child td { border-bottom: none; }
 }
 .aviso-version p { margin: 0 0 var(--e-2); }
 .aviso-version .acciones { margin: 0; }
+.tarjeta-reserva .paso { font-weight: 600; }

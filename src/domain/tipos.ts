@@ -85,6 +85,8 @@ export interface Reserva {
   exportadaEn?: string
   /** Clave (base64url, 256 bits) del enlace de huésped de esta reserva. Se guarda cifrada en el almacén. */
   claveEnlace?: string
+  /** Interno: reserva de prueba creada por el asistente de primeros pasos. No se exporta como campo; no se preselecciona al exportar. */
+  prueba?: boolean
 }
 
 export interface Establecimiento {

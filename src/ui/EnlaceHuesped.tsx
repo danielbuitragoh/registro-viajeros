@@ -49,7 +49,7 @@ export function EnlaceHuesped({ reserva, establecimiento, onGuardar, crearDetect
 
   return (
     <section aria-labelledby="t-enlace">
-      <h2 id="t-enlace">Ficha rellenada por el huésped</h2>
+      <h2 id="t-enlace" tabIndex={-1}>Ficha rellenada por el huésped</h2>
       <p className="ayuda">
         El enlace no contiene datos personales y no pasa por ningún servidor. El huésped rellena su ficha en su móvil y te entrega un <strong>código cifrado</strong> que importas aquí.
       </p>
@@ -87,7 +87,7 @@ export function EnlaceHuesped({ reserva, establecimiento, onGuardar, crearDetect
         </>
       )}
 
-      <h3>Importar el código del huésped</h3>
+      <h3 id="t-importar" tabIndex={-1}>Importar el código del huésped</h3>
       <p className="ayuda">Escanea el QR que te enseña el huésped o pega el código que te ha enviado.</p>
       <LectorQr onLeido={(c) => importar(c)} crearDetector={crearDetector} />
       <div className="campo">
