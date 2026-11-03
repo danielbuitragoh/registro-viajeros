@@ -151,3 +151,15 @@ describe('Ayuda del huésped', () => {
     TIMEOUT_AXE,
   )
 })
+
+describe('Guía contextual en la reserva (recepción)', () => {
+  it('pistas: desde cuándo cuentan las 24 h y qué forma de pago elegir (tabla 8.7)', async () => {
+    const { ReservaForm, reservaNueva } = await import('../../src/ui/ReservaForm')
+    const user = userEvent.setup()
+    render(<ReservaForm inicial={reservaNueva(new Date('2026-11-02T10:00:00'))} ahora={new Date('2026-11-02T10:00:00')} onGuardar={vi.fn()} onCancelar={vi.fn()} />)
+    const c24 = await abrir(user, '¿Desde cuándo cuentan las 24 h?')
+    expect(within(c24).getByText(/desde la entrada prevista/)).toBeInTheDocument()
+    const pago = await abrir(user, '¿Qué forma de pago elijo?')
+    expect(within(pago).getByText(/apartado 8\.7/)).toBeInTheDocument()
+  })
+})
