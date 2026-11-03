@@ -3,10 +3,20 @@ import type { Establecimiento, Reserva, Viajero } from '../domain/tipos'
 import { codificarEnlace, crearDatosEnlace, generarClaveEnlace, type Idioma } from '../huesped/enlace'
 import { descifrarFicha, reservaDeCodigo } from '../huesped/ficha'
 import { Qr } from './Qr'
+import { LectorQr } from './LectorQr'
+import type { Detector } from '../qr/lector'
 import { Selector } from './campos'
 import { IDIOMAS, t } from '../i18n/textos'
 
-export function EnlaceHuesped({ reserva, establecimiento, onGuardar }: { reserva: Reserva; establecimiento: Establecimiento; onGuardar: (r: Reserva) => Promise<void> }) {
+export interface EnlaceHuespedProps {
+  reserva: Reserva
+  establecimiento: Establecimiento
+  onGuardar: (r: Reserva) => Promise<void>
+  /** Solo pruebas: detector de QR a medida. */
+  crearDetector?: () => Promise<Detector>
+}
+
+export function EnlaceHuesped({ reserva, establecimiento, onGuardar, crearDetector }: EnlaceHuespedProps) {
   const [idioma, setIdioma] = useState<Idioma>('es')
   const [codigo, setCodigo] = useState('')
   const [mensaje, setMensaje] = useState<{ tipo: 'ok' | 'error'; texto: string }>()
@@ -19,11 +29,11 @@ export function EnlaceHuesped({ reserva, establecimiento, onGuardar }: { reserva
     await onGuardar({ ...reserva, claveEnlace: generarClaveEnlace(), modificadaEn: new Date().toISOString() })
   }
 
-  async function importar() {
+  async function importar(leido?: string) {
     setMensaje(undefined)
     try {
       if (!reserva.claveEnlace) throw new Error('Primero crea el enlace de esta reserva.')
-      const texto = codigo.trim()
+      const texto = (leido ?? codigo).trim()
       const rid = reservaDeCodigo(texto)
       if (rid !== reserva.id) throw new Error('Este código pertenece a otra reserva.')
       const nuevos = await descifrarFicha(texto, reserva.claveEnlace, reserva.id)
@@ -78,12 +88,14 @@ export function EnlaceHuesped({ reserva, establecimiento, onGuardar }: { reserva
       )}
 
       <h3>Importar el código del huésped</h3>
+      <p className="ayuda">Escanea el QR que te enseña el huésped o pega el código que te ha enviado.</p>
+      <LectorQr onLeido={(c) => importar(c)} crearDetector={crearDetector} />
       <div className="campo">
         <label htmlFor="codigo-importar">Código de envío (empieza por RV1.)</label>
         <textarea id="codigo-importar" rows={4} value={codigo} onChange={(e) => setCodigo(e.target.value)} spellCheck={false} autoComplete="off" />
       </div>
       <div className="acciones">
-        <button type="button" className="secundario" onClick={importar} disabled={codigo.trim() === ''}>
+        <button type="button" className="secundario" onClick={() => importar()} disabled={codigo.trim() === ''}>
           Importar fichas
         </button>
       </div>

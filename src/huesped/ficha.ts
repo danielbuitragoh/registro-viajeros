@@ -6,7 +6,8 @@
 import { LONGITUD_IV_BYTES, a64url, cifrarBytes, de64url, descifrarBytes } from '../crypto/cifrado'
 import type { Viajero } from '../domain/tipos'
 
-const PREFIJO = 'RV1.'
+export const PREFIJO_CODIGO = 'RV1.'
+const PREFIJO = PREFIJO_CODIGO
 const enc = new TextEncoder()
 const dec = new TextDecoder()
 

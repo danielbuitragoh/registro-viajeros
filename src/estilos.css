@@ -182,6 +182,7 @@ tbody tr:last-child td { border-bottom: none; }
 
 .qr { max-width: 16rem; margin: 1rem 0; background: #fff; padding: 0.25rem; border: 1px solid var(--borde-suave); }
 .qr svg { display: block; width: 100%; height: auto; }
+.lector-qr-camara video { display: block; width: 100%; max-width: 28rem; aspect-ratio: 4 / 3; background: #000; border-radius: var(--radio); object-fit: cover; }
 .estado-copia { min-height: 1.5rem; color: var(--ok); font-weight: 600; }
 details summary { cursor: pointer; min-height: 48px; display: flex; align-items: center; font-weight: 600; }
 
