@@ -61,6 +61,15 @@ describe.each(Object.entries(PAGINAS) as [keyof typeof PAGINAS, (typeof PAGINAS)
     expect(doc.body.textContent).toMatch(idioma === 'es' ? /no oficial/i : /not official|unofficial/i)
   })
 
+  it('mismo producto que la app: el logotipo de la app en la cabecera y los pasos guiados por el asistente', () => {
+    const logo = doc.querySelector('.cabecera svg.logo')
+    expect(logo?.getAttribute('aria-hidden')).toBe('true')
+    const app = readFileSync(join(raiz, 'public/icon.svg'), 'utf8')
+    for (const d of [...(logo?.querySelectorAll('path') ?? [])].map((x) => x.getAttribute('d'))) expect(app).toContain(`d="${d}"`)
+    const pasos = [...main.querySelectorAll('h2')].find((h) => h.textContent?.trim() === t.secciones[3])?.closest('section')
+    expect(pasos?.textContent).toMatch(idioma === 'es' ? /asistente de primeros pasos/i : /first-steps wizard/i)
+  })
+
   it('enlaza a la demo y al README', () => {
     const hrefs = [...doc.querySelectorAll('a')].map((a) => a.getAttribute('href'))
     expect(hrefs).toContain(p.demo)
