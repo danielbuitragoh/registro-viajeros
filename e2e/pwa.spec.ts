@@ -1,0 +1,79 @@
+import type { Page } from '@playwright/test'
+import { expect, test } from './guardia'
+
+/** Espera a que el service worker esté activo y controle la página (primera carga completa). */
+async function esperarServiceWorker(page: Page) {
+  await page.evaluate(async () => {
+    await navigator.serviceWorker.ready
+  })
+  await expect.poll(() => page.evaluate(() => !!navigator.serviceWorker.controller), { timeout: 15_000 }).toBe(true)
+}
+
+test('instalable: Chrome no encuentra ningún error de instalación y los iconos del manifiesto existen', async ({ page }) => {
+  await page.goto('/')
+  await esperarServiceWorker(page)
+  const cdp = await page.context().newCDPSession(page)
+  const { installabilityErrors } = await cdp.send('Page.getInstallabilityErrors')
+  expect(installabilityErrors).toEqual([])
+  const href = await page.locator('link[rel="manifest"]').getAttribute('href')
+  const manifiesto = await (await page.request.get(new URL(href ?? '', page.url()).href)).json()
+  expect(manifiesto.icons.length).toBeGreaterThanOrEqual(4)
+  for (const i of manifiesto.icons) expect((await page.request.get(new URL(i.src, page.url()).href)).ok(), i.src).toBe(true)
+})
+
+test('sin conexión tras la primera carga: recepción, autocompletado de municipios y formulario del huésped', async ({ page, context }) => {
+  await page.goto('/')
+  await esperarServiceWorker(page)
+
+  await context.setOffline(true)
+  // De verdad no hay red: lo que no está precacheado falla
+  expect(await page.evaluate(() => fetch('/no-precacheado.txt').then(() => 'ok', () => 'sin red'))).toBe('sin red')
+
+  await page.reload()
+  await page.getByRole('button', { name: 'Entrar a la demo con datos ficticios' }).click()
+  await expect(page.getByRole('heading', { name: 'Lista del día' })).toBeVisible()
+
+  // Los trozos de la relación de municipios también están en el dispositivo
+  await page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: 'Ajustes', exact: true }).click()
+  const municipio = page.getByRole('combobox', { name: /^Nombre del municipio/ })
+  await municipio.fill('aldea')
+  await expect(page.getByRole('listbox').getByRole('option')).toHaveText(['Aldea de Prueba — 99002'])
+
+  // Exportación (genera y valida el XML en el propio navegador)
+  await page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: 'Exportar', exact: true }).click()
+  await expect(page.getByRole('heading', { level: 1, name: 'Exportar fichero de alta masiva' })).toBeVisible()
+
+  // Enlace del huésped abierto sin conexión (p. ej. el móvil de recepción que se presta en el mostrador)
+  await page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: 'Hoy', exact: true }).click()
+  await page.getByRole('button', { name: /^Abrir reserva DEMO-/ }).first().click()
+  await page.getByRole('button', { name: 'Crear enlace para el huésped' }).click()
+  const enlace = await page.getByLabel('Enlace para el huésped').inputValue()
+  const huesped = await context.newPage()
+  await huesped.goto(enlace)
+  await expect(huesped.getByRole('heading', { level: 1, name: 'Datos de los viajeros' })).toBeVisible()
+  await huesped.getByRole('button', { name: 'Empezar' }).click()
+  await expect(huesped.getByRole('combobox', { name: /^Nombre del municipio/ })).toBeVisible()
+})
+
+test('aviso de nueva versión: al publicar otra versión aparece el aviso y «Actualizar ahora» la activa', async ({ page, context }) => {
+  await page.goto('/')
+  await esperarServiceWorker(page)
+
+  // Se «publica» una versión nueva: el sw.js cambia
+  const original = await (await page.request.get(new URL('sw.js', page.url()).href)).text()
+  await context.route('**/sw.js', (r) => r.fulfill({ status: 200, contentType: 'application/javascript', body: `${original}\n// versión nueva simulada por la prueba\n` }))
+  await page.evaluate(async () => {
+    await (await navigator.serviceWorker.getRegistration())?.update()
+  })
+
+  const aviso = page.getByRole('region', { name: 'Nueva versión disponible' })
+  await expect(aviso).toBeVisible()
+  await expect(aviso.getByRole('status')).toHaveText('Hay una nueva versión de la app.')
+  // Mientras no se acepta, sigue mandando la versión anterior
+  expect(await page.evaluate(async () => !!(await navigator.serviceWorker.getRegistration())?.waiting)).toBe(true)
+
+  await aviso.getByRole('button', { name: 'Actualizar ahora' }).click()
+  await expect(page.getByRole('button', { name: 'Entrar a la demo con datos ficticios' })).toBeVisible()
+  await expect(aviso).toBeHidden()
+  await expect.poll(() => page.evaluate(async () => !!(await navigator.serviceWorker.getRegistration())?.waiting)).toBe(false)
+})
