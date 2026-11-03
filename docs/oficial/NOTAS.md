@@ -28,6 +28,9 @@ Si el código y este fichero discrepan con el PDF, manda el PDF.
 - `direccion` (§7.1): `direccion` ≤100 · `direccionComplementaria` ≤100 (opc.) · `codigoMunicipio` 5 dígitos INE
   (obligatorio si país = España) · `nombreMunicipio` ≤100 (obligatorio si país ≠ España) · `codigoPostal` ≤20 · `pais` ISO 3166-1 alfa-3.
 - `pago` (§7.2): `tipoPago` (obligatorio) · `fechaPago` AAAA-MM-DD · `medioPago` ≤50 · `titular` ≤100 · `caducidadTarjeta` MM/AAAA.
+- Tipos de documento (§8.5): **exactamente NIF, NIE, PAS y OTRO**. Reglas asociadas en el §3: `apellido2` obligatorio con NIF;
+  `soporteDocumento` obligatorio con NIF o NIE; el número «deberá corresponder al tipo de documento … y tener un formato
+  válido en el caso de NIF o NIE» (letra de control). Se transcriben en `src/oficial/documentos.ts` con su cita.
 - Tablas de códigos usadas (§8): parentesco (8.3), sexo (8.4), tipos de documento (8.5), tipos de establecimiento (8.6), tipos de pago (8.7).
   Se transcriben en `src/oficial/codigos.ts` y un test comprueba su contenido.
 
@@ -46,9 +49,11 @@ Cada punto está marcado en el código con `// PENDIENTE-OFICIAL:` y listado en 
 | P7 | `parentesco` es un único campo por persona sin indicar a qué menor se refiere. | Se exporta en el adulto designado como acompañante; con varios menores y parentescos distintos se avisa. |
 | P8 | No dice si el titular que también se aloja debe repetirse (TI + VI) ni si el TI es obligatorio en partes de viajeros. | En partes: solo bloques VI. En reservas: un TI (el viajero marcado como titular) + los VI. |
 | P9 | No define el formato de teléfono ni de correo más allá de longitud y "formato válido". | Validación permisiva (E.164-like y correo básico). |
-| P10 | Longitudes del `soporteDocumento` y formatos concretos por país de pasaporte: no están en el documento. | Soporte: alfanumérico ≤9. Pasaporte: formato por país **orientativo** (aviso, no bloqueo). |
+| P10 | Longitudes del `soporteDocumento` y formatos concretos por país de pasaporte: no están en el documento. Tampoco dice **dónde figura el soporte** en cada documento. | Soporte: alfanumérico ≤9. Pasaporte: formato por país **orientativo** (aviso, no bloqueo). La ayuda al huésped sobre dónde encontrar el soporte es orientativa («suele estar…», con ilustración esquemática), no sale del documento. |
 | P11 | Tipo `String` sin límite en `numeroDocumento` de la tabla de vehículos, etc.: irrelevante aquí. | — |
 | P12 | No dice desde cuándo cuentan las 24 h ni los 3 años de conservación (eso es el RD 933/2021, no este documento). | 24 h desde la entrada prevista; 3 años desde la fecha de salida. Confirmar con el RD y con asesoría. |
 | P13 | Canal de reserva (Booking, directo…) no existe en el fichero. | Dato interno, no se exporta. |
 | P14 | Cómo/dónde se sube el fichero y qué errores devuelve el sistema: fuera del alcance del documento. | La app solo genera y valida el fichero; el envío es manual en el portal. |
+| P16 | La tabla 8.5 solo tiene **NIF, NIE, PAS y OTRO**. No da código propio para el documento de identidad de otro país (p. ej. un carné de identidad de la UE), permisos de residencia o carnés de conducir. | Se implementan exactamente esos 4 códigos. Al huésped con un documento que no es DNI, NIE ni pasaporte se le propone **OTRO** («Otro»), el único valor genérico de la tabla. Confirmar con el portal que lo acepta así. |
+| P17 | El §3 y el §4 remiten a «la tabla … en el apartado 6. Tablas de códigos», pero las tablas están en el **apartado 8** (el 6 es el de vehículos). | Errata del documento: se usan las tablas del apartado 8. |
 | P15 | "Código INE, 5 dígitos" (§7.1): no dice si incluye el dígito de control (DC) que el INE publica junto a CPRO y CMUN. | Se usa CPRO (2) + CMUN (3) = 5 dígitos, sin DC (es lo único que cuadra con «5 dígitos»). Confirmar con el portal. |
