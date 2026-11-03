@@ -11,6 +11,9 @@ import { exportarCopia, importarCopia } from '../storage/copia'
 import { LONGITUD_MINIMA_PASSWORD } from '../storage/almacen'
 import { useApp } from '../app/AppContext'
 import { Entrada, Grupo, Selector } from './campos'
+import { CampoMunicipio } from './CampoMunicipio'
+import { useRelacionesIne } from '../ine/useIne'
+import { fechaLegible } from '../ine/relacion'
 import { fechaCorta } from './formato'
 
 const vacio = (s: string | undefined) => s === undefined || s.trim() === ''
@@ -70,6 +73,19 @@ function FormEstablecimiento() {
   }
   const d = e.direccion ?? { direccion: '', codigoPostal: '', pais: alfa3Espana }
   const setD = (k: keyof typeof d, v: string) => setE({ ...e, direccion: { ...d, [k]: v } })
+  const ine = useRelacionesIne(d.pais === alfa3Espana)
+  const codigoIne = d.codigoMunicipio?.trim() ?? ''
+  const estadoIne = ine.consulta?.(codigoIne)
+  const ayudaIne =
+    estadoIne?.tipo === 'vigente'
+      ? `Código ${codigoIne}: ${estadoIne.municipio.nombre} (relación del INE a ${fechaLegible(estadoIne.fecha)}).`
+      : estadoIne?.tipo === 'baja'
+        ? `⚠ ${codigoIne} (${estadoIne.municipio.nombre}) figuraba en la relación del INE a ${fechaLegible(estadoIne.fechaAnterior)}, pero ya no en la de ${fechaLegible(estadoIne.fecha)}: busca el municipio actual.`
+        : estadoIne?.tipo === 'no_figura'
+          ? `⚠ ${codigoIne} no figura en la relación de municipios del INE a ${fechaLegible(estadoIne.fecha)}. Compruébalo.`
+          : ine.relaciones?.length === 0
+            ? '5 dígitos. Esta versión no incluye la relación de municipios del INE: escríbelo a mano.'
+            : '5 dígitos.'
   const paises = useMemo(() => paisesOrdenados('es').map((p) => ({ valor: p.alfa3, texto: p.nombre })), [])
 
   async function guardar(ev: React.FormEvent) {
@@ -96,7 +112,23 @@ function FormEstablecimiento() {
         <Entrada id="e-dir" etiqueta="Dirección" valor={d.direccion} onCambio={(v) => setD('direccion', v)} error={error('direccion.direccion')} autoComplete="street-address" />
         <Entrada id="e-cp" etiqueta="Código postal" valor={d.codigoPostal} onCambio={(v) => setD('codigoPostal', v)} error={error('direccion.codigoPostal')} autoComplete="postal-code" />
         {d.pais === alfa3Espana ? (
-          <Entrada id="e-ine" etiqueta="Código INE del municipio" valor={d.codigoMunicipio ?? ''} onCambio={(v) => setD('codigoMunicipio', v)} error={error('direccion.codigoMunicipio')} inputMode="numeric" maxLength={5} ayuda="5 dígitos (Madrid capital: 28079)." />
+          <>
+            {ine.activa && (
+              <CampoMunicipio
+                id="e-mun-es"
+                etiqueta="Nombre del municipio"
+                idioma="es"
+                valor={d.nombreMunicipio ?? ''}
+                onCambio={(v) => setD('nombreMunicipio', v)}
+                onElegir={(m) => setE((x) => ({ ...x, direccion: { ...(x.direccion ?? d), nombreMunicipio: m.nombre, codigoMunicipio: m.codigo } }))}
+                relacion={ine.activa}
+                provincia={/^\d{5}$/.test(d.codigoPostal.trim()) ? d.codigoPostal.trim().slice(0, 2) : undefined}
+                ayuda={`Escribe el nombre y elige el municipio en la lista: el código INE se rellena solo.${ine.activa.ficticia ? ' Demo: relación de municipios FICTICIA, no son códigos reales.' : ''}`}
+                marca="opcional"
+              />
+            )}
+            <Entrada id="e-ine" etiqueta="Código INE del municipio" valor={d.codigoMunicipio ?? ''} onCambio={(v) => setD('codigoMunicipio', v)} error={error('direccion.codigoMunicipio')} inputMode="numeric" maxLength={5} ayuda={ayudaIne} />
+          </>
         ) : (
           <Entrada id="e-mun" etiqueta="Municipio o ciudad" valor={d.nombreMunicipio ?? ''} onCambio={(v) => setD('nombreMunicipio', v)} error={error('direccion.nombreMunicipio')} />
         )}

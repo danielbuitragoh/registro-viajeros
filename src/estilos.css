@@ -216,3 +216,20 @@ details summary { cursor: pointer; min-height: 48px; display: flex; align-items:
   .hoja-qr .qr { max-width: 7cm; border: 0; }
   .hoja-pie { font-size: 8pt; color: #444; margin-top: 1rem; }
 }
+
+/* Autocompletado de municipio (combobox) */
+.combo { position: relative; }
+.combo-lista {
+  position: absolute; z-index: 5; left: 0; right: 0; top: calc(100% + 2px);
+  margin: 0; padding: 0.25rem 0; list-style: none; max-height: 18rem; overflow-y: auto;
+  background: var(--fondo); border: 2px solid var(--borde); border-radius: var(--radio);
+  box-shadow: 0 6px 18px rgb(0 0 0 / 0.18);
+}
+.combo-lista[hidden] { display: none; }
+.combo-lista [role='option'] {
+  min-height: 48px; display: flex; align-items: center; padding: 0.5rem 0.75rem; cursor: pointer;
+  border-left: 4px solid transparent;
+}
+.combo-lista [role='option']:hover { background: var(--fondo-suave); }
+/* Opción marcada: fondo, color y una barra lateral (no solo el color) */
+.combo-lista [role='option'][aria-selected='true'] { background: var(--primario); color: var(--sobre-primario); border-left-color: var(--foco); font-weight: 600; }

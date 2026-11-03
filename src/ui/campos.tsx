@@ -11,7 +11,7 @@ interface BaseProps {
   marca?: string
 }
 
-function Mensajes({ id, ayuda, error, aviso, etiquetaError, etiquetaAviso }: { id: string; ayuda?: string; error?: string; aviso?: string; etiquetaError: string; etiquetaAviso: string }) {
+export function Mensajes({ id, ayuda, error, aviso, etiquetaError, etiquetaAviso }: { id: string; ayuda?: string; error?: string; aviso?: string; etiquetaError: string; etiquetaAviso: string }) {
   return (
     <>
       {ayuda && (
@@ -37,7 +37,7 @@ function Mensajes({ id, ayuda, error, aviso, etiquetaError, etiquetaAviso }: { i
   )
 }
 
-const describedBy = (id: string, p: { ayuda?: string; error?: string; aviso?: string }) =>
+export const describedBy = (id: string, p: { ayuda?: string; error?: string; aviso?: string }) =>
   [p.ayuda && `${id}-ayuda`, p.error && `${id}-error`, p.aviso && !p.error && `${id}-aviso`].filter(Boolean).join(' ') || undefined
 
 export interface EntradaProps extends BaseProps {

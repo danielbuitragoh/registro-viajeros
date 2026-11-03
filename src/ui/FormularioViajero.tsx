@@ -8,6 +8,9 @@ import type { Idioma } from '../huesped/enlace'
 import { edadEn, esFechaValida } from '../validators/fechas'
 import { validarViajero } from '../validators/viajero'
 import { Entrada, Grupo, ResumenErrores, Selector } from './campos'
+import { CampoMunicipio } from './CampoMunicipio'
+import { useRelacionesIne } from '../ine/useIne'
+import { fechaLegible } from '../ine/relacion'
 
 export interface AdultoRef {
   id: string
@@ -85,11 +88,15 @@ export function FormularioViajero(props: FormularioViajeroProps) {
   const edad = esFechaValida(v.fechaNacimiento) && v.fechaNacimiento <= fechaEntrada ? edadEn(v.fechaNacimiento, fechaEntrada) : undefined
   const esMenor = edad !== undefined && edad < 18
 
+  const esp = v.direccion.pais === alfa3Espana
+  // Relación de municipios del INE: solo se carga si el domicilio está en España
+  const ine = useRelacionesIne(esp)
+
   const incidencias: Incidencia[] = useMemo(() => {
-    const todas = validarViajero(limpiarViajero(v), { fechaEntrada, modo: 'parte', adultosIds: adultos.map((a) => a.id) })
+    const todas = validarViajero(limpiarViajero(v), { fechaEntrada, modo: 'parte', adultosIds: adultos.map((a) => a.id), ine: ine.consulta })
     // El huésped no puede conocer el código INE: recepción lo completa.
     return modo === 'huesped' ? todas.filter((i) => !(i.campo === 'direccion.codigoMunicipio' && i.codigo === 'requerido')) : todas
-  }, [v, fechaEntrada, adultos, modo])
+  }, [v, fechaEntrada, adultos, modo, ine.consulta])
 
   const visibles = (campo: string) => incidencias.filter((i) => i.campo === campo && (intentado || tocados.has(campo)))
   const errorDe = (c: string) => {
@@ -118,7 +125,19 @@ export function FormularioViajero(props: FormularioViajeroProps) {
   const sexos = opcionesCodigo('SEXO', idioma)
   const parentescos = opcionesCodigo('PARENTESCO', idioma)
   const marca = (obligatorio: boolean) => (obligatorio ? undefined : tr('comun.opcional').replace(/[()]/g, ''))
-  const esp = v.direccion.pais === alfa3Espana
+
+  // Ayuda del código INE: qué municipio es según la relación, o cómo rellenarlo
+  const codigoIne = v.direccion.codigoMunicipio?.trim() ?? ''
+  const estadoIne = ine.consulta?.(codigoIne)
+  const ayudaCodigo =
+    estadoIne?.tipo === 'vigente'
+      ? tr('f.municipio_ine_ok', { codigo: codigoIne, nombre: estadoIne.municipio.nombre, fecha: fechaLegible(estadoIne.fecha) })
+      : modo === 'huesped'
+        ? tr('f.municipio_ine_ayuda')
+        : ine.relaciones?.length === 0
+          ? tr('f.municipio_sin_relacion')
+          : undefined
+  const cp = v.direccion.codigoPostal.trim()
 
   function enviar(e: React.FormEvent) {
     e.preventDefault()
@@ -165,9 +184,27 @@ export function FormularioViajero(props: FormularioViajeroProps) {
         <Entrada {...props_('direccion.direccion')} valor={v.direccion.direccion} onCambio={(x) => setDir('direccion', x)} autoComplete="street-address" obligatorio />
         <Entrada {...props_('direccion.direccionComplementaria')} valor={v.direccion.direccionComplementaria ?? ''} onCambio={(x) => setDir('direccionComplementaria', x)} marca={marca(false)} />
         <Entrada {...props_('direccion.codigoPostal')} valor={v.direccion.codigoPostal} onCambio={(x) => setDir('codigoPostal', x)} autoComplete="postal-code" obligatorio />
-        <Entrada {...props_('direccion.nombreMunicipio')} etiqueta={esp ? tr('f.municipio_nombre_es') : etiquetaCampo('direccion.nombreMunicipio', idioma)} valor={v.direccion.nombreMunicipio ?? ''} onCambio={(x) => setDir('nombreMunicipio', x)} autoComplete="address-level2" obligatorio={!esp} marca={marca(!esp)} />
+        {esp && ine.activa ? (
+          <CampoMunicipio
+            {...props_('direccion.nombreMunicipio')}
+            etiqueta={tr('f.municipio_nombre_es')}
+            idioma={idioma}
+            valor={v.direccion.nombreMunicipio ?? ''}
+            onCambio={(x) => setDir('nombreMunicipio', x)}
+            onElegir={(m) => setV((x) => ({ ...x, direccion: { ...x.direccion, nombreMunicipio: m.nombre, codigoMunicipio: m.codigo } }))}
+            relacion={ine.activa}
+            // Pista para ordenar: las 2 primeras cifras del código postal suelen ser las de la provincia. No valida nada.
+            provincia={/^\d{5}$/.test(cp) ? cp.slice(0, 2) : undefined}
+            ayuda={`${tr('f.municipio_buscar_ayuda')}${ine.activa.ficticia ? ` ${tr('f.municipio_ficticia')}` : ''}`}
+            // WCAG 1.3.5: el huésped escribe SU dirección; en recepción se teclean datos de otros
+            autoComplete={modo === 'huesped' ? 'address-level2' : 'off'}
+            marca={marca(false)}
+          />
+        ) : (
+          <Entrada {...props_('direccion.nombreMunicipio')} etiqueta={esp ? tr('f.municipio_nombre_es') : etiquetaCampo('direccion.nombreMunicipio', idioma)} valor={v.direccion.nombreMunicipio ?? ''} onCambio={(x) => setDir('nombreMunicipio', x)} autoComplete="address-level2" obligatorio={!esp} marca={marca(!esp)} />
+        )}
         {esp && (
-          <Entrada {...props_('direccion.codigoMunicipio')} valor={v.direccion.codigoMunicipio ?? ''} onCambio={(x) => setDir('codigoMunicipio', x)} inputMode="numeric" maxLength={5} ayuda={tr('f.municipio_ine_ayuda')} obligatorio={modo === 'recepcion'} marca={marca(modo === 'recepcion')} />
+          <Entrada {...props_('direccion.codigoMunicipio')} valor={v.direccion.codigoMunicipio ?? ''} onCambio={(x) => setDir('codigoMunicipio', x)} inputMode="numeric" maxLength={5} ayuda={ayudaCodigo} obligatorio={modo === 'recepcion'} marca={marca(modo === 'recepcion')} />
         )}
       </Grupo>
 

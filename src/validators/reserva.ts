@@ -3,6 +3,7 @@ import type { Incidencia, Reserva, TipoComunicacion } from '../domain/tipos'
 import { aFechaHoraOficial, esFechaHoraValida, esFechaValida, esMayorDeEdad, hoyISO, soloFecha } from './fechas'
 import { normalizarDocumento } from './documentos'
 import { validarViajero } from './viajero'
+import type { ConsultaIne } from '../ine/relacion'
 
 const vacio = (s: string | undefined | null) => s === undefined || s === null || s.trim() === ''
 const err = (campo: string, codigo: string, params?: Incidencia['params'], viajeroId?: string): Incidencia => ({
@@ -21,7 +22,7 @@ const aviso = (campo: string, codigo: string, params?: Incidencia['params'], via
  * Valida una reserva con sus viajeros contra el documento oficial.
  * `partes` = §3 (parte de viajeros). `reservas` = §4 (reserva de hospedaje).
  */
-export function validarReserva(r: Reserva, tipo: TipoComunicacion): Incidencia[] {
+export function validarReserva(r: Reserva, tipo: TipoComunicacion, opciones: { ine?: ConsultaIne } = {}): Incidencia[] {
   const out: Incidencia[] = []
 
   // --- contrato ---
@@ -72,7 +73,7 @@ export function validarReserva(r: Reserva, tipo: TipoComunicacion): Incidencia[]
   }
 
   for (const v of r.viajeros) {
-    for (const i of validarViajero(v, { fechaEntrada, modo, adultosIds })) out.push({ ...i, viajeroId: v.id })
+    for (const i of validarViajero(v, { fechaEntrada, modo, adultosIds, ine: opciones.ine })) out.push({ ...i, viajeroId: v.id })
   }
 
   // Documentos repetidos (probable error de transcripción)

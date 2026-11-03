@@ -9,6 +9,7 @@ import { ChipEstado, TextoPlazo } from './Estado'
 import { FormularioViajero, viajeroVacio } from './FormularioViajero'
 import { ReservaForm } from './ReservaForm'
 import { fechaHoraCorta, nuevoId } from './formato'
+import { useRelacionesIne } from '../ine/useIne'
 
 export interface ReservaDetalleProps {
   reserva: Reserva
@@ -28,7 +29,9 @@ export function ReservaDetalle({ reserva, establecimiento, ahora, onGuardar, onB
 
   const estado = estadoParte(reserva)
   const plazo = plazo24h(reserva.entrada, ahora)
-  const incidencias = useMemo(() => validarReserva(reserva, 'partes'), [reserva])
+  // Avisos del código INE (si esta versión incluye la relación de municipios); no cambian el estado del parte
+  const ine = useRelacionesIne(reserva.viajeros.some((v) => v.direccion?.pais === 'ESP'))
+  const incidencias = useMemo(() => validarReserva(reserva, 'partes', { ine: ine.consulta }), [reserva, ine.consulta])
   const fechaEntrada = soloFecha(reserva.entrada)
   const esAdulto = (v: Viajero) => esFechaValida(v.fechaNacimiento) && edadEn(v.fechaNacimiento, fechaEntrada) >= 18
 
