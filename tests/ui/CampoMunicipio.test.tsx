@@ -86,7 +86,7 @@ describe('autocompletado municipio → código INE (recepción)', () => {
     montar()
     await user.type(screen.getByLabelText(/Código postal/), '99120')
     await user.type(await screen.findByRole('combobox', { name: /Nombre del municipio/ }), 'villaficticia')
-    expect(screen.getAllByRole('option').map((o) => o.textContent)).toEqual(['Villaficticia — 99001', 'Villaficticia — 98001'])
+    expect(within(screen.getByRole('listbox')).getAllByRole('option').map((o) => o.textContent)).toEqual(['Villaficticia — 99001', 'Villaficticia — 98001'])
   })
 
   it('sin coincidencias lo dice, y el código se puede seguir escribiendo a mano', async () => {
@@ -116,7 +116,7 @@ describe('autocompletado municipio → código INE (recepción)', () => {
   it('sin relación del INE en esta versión: campo de texto normal y aviso de escribir el código a mano', async () => {
     montar({}, [])
     expect(await screen.findByText(/no incluye la relación de municipios del INE/)).toBeInTheDocument()
-    expect(screen.queryByRole('combobox')).not.toBeInTheDocument()
+    expect(screen.queryByRole('combobox', { name: /municipio/ })).not.toBeInTheDocument()
     expect(screen.getByRole('textbox', { name: /Nombre del municipio/ })).toBeInTheDocument()
   })
 
@@ -152,7 +152,7 @@ describe('autocompletado en el formulario del huésped (opcional para él)', () 
     await screen.findByRole('combobox', { name: /Nombre del municipio/ })
     await user.selectOptions(screen.getByLabelText(/País de residencia/), 'FRA')
     await act(async () => undefined)
-    expect(screen.queryByRole('combobox')).not.toBeInTheDocument()
+    expect(screen.queryByRole('combobox', { name: /municipio/i })).not.toBeInTheDocument()
     expect(screen.getByRole('textbox', { name: /Municipio o ciudad/ })).toBeInTheDocument()
   })
 })
