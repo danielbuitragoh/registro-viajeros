@@ -24,6 +24,10 @@ jobs:
         run: npm run typecheck
       - name: Pruebas
         run: npm test
+      - name: Pruebas del paquete documentos-es (con umbral de cobertura)
+        run: npm run test:paquete
+      - name: Paquete documentos-es empaquetado (instala el .tgz, lo importa y comprueba los tipos)
+        run: npm run verificar:paquete
       - name: Build de producción
         run: npm run build
 
