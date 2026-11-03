@@ -5,6 +5,7 @@ import { etiquetaCampo, mensajeIncidencia } from '../i18n/mensajes'
 import { estadoParte } from '../validators/reserva'
 import { ChipEstado } from './Estado'
 import { fechaHoraCorta } from './formato'
+import { Icono } from './Icono'
 
 export interface ExportarProps {
   reservas: Reserva[]
@@ -23,7 +24,7 @@ const nombrePrincipal = (r: Reserva) => {
 export function Exportar({ reservas, establecimiento, ahora, onExportadas, onIrAjustes }: ExportarProps) {
   const [tipo, setTipo] = useState<TipoComunicacion>('partes')
   const ordenadas = useMemo(() => [...reservas].sort((a, b) => b.entrada.localeCompare(a.entrada)), [reservas])
-  const [seleccion, setSeleccion] = useState<Set<string>>(() => new Set(reservas.filter((r) => estadoParte(r) === 'completo').map((r) => r.id)))
+  const [seleccion, setSeleccion] = useState<Set<string>>(() => new Set(reservas.filter((r) => estadoParte(r) === 'completo' && !r.prueba).map((r) => r.id)))
   const [resultado, setResultado] = useState<ResultadoExportacion>()
   const [descargado, setDescargado] = useState(false)
 
@@ -54,6 +55,8 @@ export function Exportar({ reservas, establecimiento, ahora, onExportadas, onIrA
     if (tipo === 'partes') await onExportadas(r.reservasIncluidas, ahora.toISOString())
     setDescargado(true)
   }
+
+  const pruebasIncluidas = resultado?.ok ? reservas.filter((r) => r.prueba && resultado.reservasIncluidas.includes(r.id)) : []
 
   const nombreReserva = (id?: string) => {
     const r = reservas.find((x) => x.id === id)
@@ -97,7 +100,15 @@ export function Exportar({ reservas, establecimiento, ahora, onExportadas, onIrA
 
       <fieldset>
         <legend>Reservas a incluir ({seleccion.size} seleccionadas)</legend>
-        {ordenadas.length === 0 && <p>No hay reservas.</p>}
+        {ordenadas.length === 0 && (
+          <div className="vacio">
+            <Icono nombre="exportar" />
+            <p>
+              <strong>Todavía no hay reservas que exportar.</strong>
+            </p>
+            <p>Cuando una reserva tenga sus fichas completas, aparecerá aquí ya marcada.</p>
+          </div>
+        )}
         <ul className="lista-seleccion">
           {ordenadas.map((r) => {
             const estado = estadoParte(r)
@@ -106,6 +117,7 @@ export function Exportar({ reservas, establecimiento, ahora, onExportadas, onIrA
                 <input id={`sel-${r.id}`} type="checkbox" checked={seleccion.has(r.id)} onChange={() => alternar(r.id)} />
                 <label htmlFor={`sel-${r.id}`}>
                   <strong>{r.referencia || '(sin referencia)'}</strong> · {fechaHoraCorta(r.entrada)} · {nombrePrincipal(r)} <ChipEstado estado={estado} />
+                  {r.prueba && <span className="chip chip-prueba">Prueba</span>}
                 </label>
               </li>
             )
@@ -142,6 +154,11 @@ export function Exportar({ reservas, establecimiento, ahora, onExportadas, onIrA
             <span aria-hidden="true">✔ </span>
             {resultado.reservasIncluidas.length} {resultado.reservasIncluidas.length === 1 ? 'comunicación' : 'comunicaciones'} superan la validación contra el documento oficial. Nombre: <code>{resultado.nombreFichero}</code>
           </p>
+          {pruebasIncluidas.length > 0 && (
+            <p className="tarjeta tarjeta-aviso" role="alert">
+              <Icono nombre="aviso" /> <strong>{`El fichero incluye la reserva de prueba ${pruebasIncluidas.map((r) => r.referencia).join(', ')}: NO subas este fichero al portal.`}</strong> Quítala de la selección y vuelve a generarlo.
+            </p>
+          )}
           {resultado.avisos.length > 0 && (
             <>
               <h3>Avisos (no bloquean)</h3>
@@ -165,10 +182,17 @@ export function Exportar({ reservas, establecimiento, ahora, onExportadas, onIrA
             </button>
           </div>
           {descargado && (
-            <p role="status" className="mensaje mensaje-ok">
-              <span aria-hidden="true">✔ </span>
-              Fichero descargado{tipo === 'partes' ? ' y partes marcados como «exportados»' : ''}. Recuerda subirlo al portal SES.Hospedajes: hasta entonces, la comunicación NO está hecha.
-            </p>
+            <section className="siguiente-paso" aria-labelledby="t-subir" role="status">
+              <h2 id="t-subir">
+                <Icono nombre="adelante" />
+                Último paso: súbelo tú al portal SES.Hospedajes
+              </h2>
+              <p>
+                <span aria-hidden="true">✔ </span>
+                Fichero descargado{tipo === 'partes' ? ' y partes marcados como «exportados»' : ''}. Entra en el portal SES.Hospedajes y súbelo en el alta masiva de comunicaciones: hasta entonces, la comunicación NO está hecha.
+              </p>
+              <p className="ayuda">Si tu programa de gestión ya comunica los partes, no lo subas: se comunicarían dos veces. ¿El portal lo rechaza? Mira la <a href="#/ayuda">Ayuda</a>.</p>
+            </section>
           )}
           <details>
             <summary>Ver el contenido del XML</summary>

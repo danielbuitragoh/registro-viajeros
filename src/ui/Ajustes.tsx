@@ -19,6 +19,7 @@ import { Icono, type NombreIcono } from './Icono'
 import { Migas } from './Migas'
 import { Pista } from './Pista'
 import { aplicarTema, leerTema, type Tema } from '../diseno/tema'
+import { COPIA_POR_DEFECTO, FRECUENCIAS_COPIA } from '../domain/preferencias'
 
 const vacio = (s: string | undefined) => s === undefined || s.trim() === ''
 
@@ -301,26 +302,75 @@ function Seguridad() {
   )
 }
 
+/** Descargar una copia cifrada; anota la fecha para el recordatorio de «Hoy». */
+export function DescargarCopia() {
+  const app = useApp()
+  const [pass, setPass] = useState('')
+  const [msg, setMsg] = useState<{ ok: boolean; texto: string }>()
+  async function exportar(ev: React.FormEvent) {
+    ev.preventDefault()
+    setMsg(undefined)
+    try {
+      const json = await exportarCopia(app.almacen as NonNullable<typeof app.almacen>, pass)
+      descargarTexto(`copia-registro-viajeros_${new Date().toISOString().slice(0, 10)}.json`, json, 'application/json')
+      await app.guardarPreferencias({ ...app.preferencias, copias: { ...COPIA_POR_DEFECTO, ...app.preferencias.copias, ultima: new Date().toISOString() } })
+      setMsg({ ok: true, texto: 'Copia cifrada descargada. Guárdala fuera de este equipo (memoria USB, otro ordenador…) y no pierdas su contraseña.' })
+      setPass('')
+    } catch (e) {
+      setMsg({ ok: false, texto: e instanceof Error ? e.message : String(e) })
+    }
+  }
+  const ultima = app.preferencias.copias?.ultima
+  return (
+    <form onSubmit={exportar} noValidate>
+      <Grupo leyenda="Crear copia" ayuda="Un fichero cifrado con AES-GCM. Sin su contraseña es ilegible; puede ser distinta de la del establecimiento.">
+        <p className="ayuda">{ultima ? `Última copia en este dispositivo: ${fechaCorta(ultima)}.` : 'Todavía no has hecho ninguna copia en este dispositivo.'}</p>
+        <Entrada id="c-pass-exp" tipo="password" etiqueta="Contraseña de la copia" valor={pass} onCambio={setPass} autoComplete="new-password" />
+      </Grupo>
+      <div className="acciones">
+        <button type="submit" className="primario">
+          <Icono nombre="copia" />
+          Descargar copia
+        </button>
+      </div>
+      <Mensaje msg={msg} />
+    </form>
+  )
+}
+
+/** Cada cuánto recordar la copia en «Hoy». */
+export function FrecuenciaCopia() {
+  const app = useApp()
+  const copias = { ...COPIA_POR_DEFECTO, ...app.preferencias.copias }
+  return (
+    <Selector
+      id="c-frecuencia"
+      etiqueta="Recordarme hacer una copia"
+      valor={String(copias.cadaDias)}
+      onCambio={(v) => void app.guardarPreferencias({ ...app.preferencias, copias: { ...copias, cadaDias: Number(v) } })}
+      opciones={FRECUENCIAS_COPIA.map((f) => ({ valor: String(f.dias), texto: f.texto }))}
+      ayuda="El aviso sale en «Hoy». Sin notificaciones ni servidores: solo lo ves al abrir la app."
+    />
+  )
+}
+
+function Mensaje({ msg }: { msg?: { ok: boolean; texto: string } }) {
+  if (!msg) return null
+  return (
+    <p role={msg.ok ? 'status' : 'alert'} className={`mensaje ${msg.ok ? 'mensaje-ok' : 'mensaje-error'}`}>
+      <span aria-hidden="true">{msg.ok ? '✔ ' : '✖ '}</span>
+      {msg.texto}
+    </p>
+  )
+}
+
 function Copias() {
   const app = useApp()
-  const [passExp, setPassExp] = useState('')
   const [passImp, setPassImp] = useState('')
   const [modo, setModo] = useState<'fusionar' | 'reemplazar'>('fusionar')
   const [msg, setMsg] = useState<{ ok: boolean; texto: string }>()
   const fichero = useRef<HTMLInputElement>(null)
 
-  async function exportar(ev: React.FormEvent) {
-    ev.preventDefault()
-    setMsg(undefined)
-    try {
-      const json = await exportarCopia(app.almacen as NonNullable<typeof app.almacen>, passExp)
-      descargarTexto(`copia-registro-viajeros_${new Date().toISOString().slice(0, 10)}.json`, json, 'application/json')
-      setMsg({ ok: true, texto: 'Copia cifrada descargada. Guárdala en un lugar seguro y no pierdas su contraseña.' })
-      setPassExp('')
-    } catch (e) {
-      setMsg({ ok: false, texto: e instanceof Error ? e.message : String(e) })
-    }
-  }
   async function importar(ev: React.FormEvent) {
     ev.preventDefault()
     setMsg(undefined)
@@ -337,23 +387,16 @@ function Copias() {
   }
   return (
     <section aria-label="Copia de seguridad cifrada">
-      <form onSubmit={exportar} noValidate>
-        <Grupo leyenda="Crear copia" ayuda="Un fichero cifrado con AES-GCM. Sin su contraseña es ilegible; puede ser distinta de la del establecimiento.">
-          <Entrada id="c-pass-exp" tipo="password" etiqueta="Contraseña de la copia" valor={passExp} onCambio={setPassExp} autoComplete="new-password" />
-        </Grupo>
-        <div className="acciones">
-          <button type="submit" className="secundario">
-            Descargar copia
-          </button>
-        </div>
-      </form>
+      <p>Los datos solo viven en este dispositivo. Haz una copia al menos una vez por semana y guárdala fuera de él: es la única forma de recuperarlos si el equipo se estropea o se pierde, o de pasarlos a otro.</p>
+      <DescargarCopia />
+      <FrecuenciaCopia />
       <form onSubmit={importar} noValidate>
-        <Grupo leyenda="Restaurar copia">
+        <Grupo leyenda="Restaurar copia" ayuda="Por ejemplo, al cambiar de ordenador: restaura aquí la copia que descargaste en el antiguo.">
           <div className="campo">
             <label htmlFor="c-fichero">Fichero de la copia</label>
             <input id="c-fichero" type="file" accept="application/json,.json" ref={fichero} />
           </div>
-          <Entrada id="c-pass-imp" tipo="password" etiqueta="Contraseña de la copia" valor={passImp} onCambio={setPassImp} autoComplete="current-password" />
+          <Entrada id="c-pass-imp" tipo="password" etiqueta="Contraseña de la copia que restauras" valor={passImp} onCambio={setPassImp} autoComplete="current-password" />
           <Selector id="c-modo" etiqueta="Qué hacer con los datos actuales" valor={modo} onCambio={(v) => setModo(v as typeof modo)} opciones={[{ valor: 'fusionar', texto: 'Fusionar (gana la versión más reciente de cada reserva)' }, { valor: 'reemplazar', texto: 'Reemplazar todo por el contenido de la copia' }]} />
         </Grupo>
         <div className="acciones">
@@ -361,13 +404,8 @@ function Copias() {
             Restaurar copia
           </button>
         </div>
+        <Mensaje msg={msg} />
       </form>
-      {msg && (
-        <p role={msg.ok ? 'status' : 'alert'} className={`mensaje ${msg.ok ? 'mensaje-ok' : 'mensaje-error'}`}>
-          <span aria-hidden="true">{msg.ok ? '✔ ' : '✖ '}</span>
-          {msg.texto}
-        </p>
-      )}
     </section>
   )
 }

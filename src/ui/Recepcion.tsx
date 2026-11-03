@@ -3,10 +3,12 @@ import { useApp } from '../app/AppContext'
 import { useRuta } from '../app/ruta'
 import type { Establecimiento, Reserva } from '../domain/tipos'
 import { fechaPurga } from '../domain/plazos'
+import { recordatorioCopia, TOTAL_PASOS } from '../domain/preferencias'
 import { importarCodigo, MENSAJE_IMPORTAR } from '../huesped/importar'
 import { hoyISO } from '../validators/fechas'
 import { estadoParte } from '../validators/reserva'
 import { Ajustes, esSeccionAjustes } from './Ajustes'
+import { Asistente } from './Asistente'
 import { Ayuda } from './Ayuda'
 import { ChipEstado } from './Estado'
 import { Exportar } from './Exportar'
@@ -37,7 +39,13 @@ export function Recepcion() {
   const [fecha, setFecha] = useState(() => hoyISO(ahora))
   const [filtro, setFiltro] = useState('')
   const [escaneando, setEscaneando] = useState(false)
-  const [aviso, setAviso] = useState<{ ok: boolean; texto: string }>()
+  // Mensaje tras una acción. Con `ruta`, se muestra al llegar a esa pantalla y se borra al salir de ella.
+  const [aviso, setAvisoEstado] = useState<{ ok: boolean; texto: string; ruta?: string }>()
+  const avisoMostrado = useRef(false)
+  const setAviso = (a?: { ok: boolean; texto: string; ruta?: string }) => {
+    avisoMostrado.current = false
+    setAvisoEstado(a)
+  }
 
   // Al cambiar de pantalla: arriba del todo y foco en el contenido (WCAG 2.4.3). Sin esto, en el móvil la reserva
   // abierta desde una fila de abajo se mostraba con el desplazamiento de la lista y su título quedaba fuera de la vista.
@@ -63,16 +71,23 @@ export function Recepcion() {
     if (!r.ok) return setAviso({ ok: false, texto: MENSAJE_IMPORTAR[r.error] })
     await app.guardarReserva(r.reserva)
     setEscaneando(false)
-    setAviso({ ok: true, texto: `Se ${r.importadas === 1 ? 'ha importado 1 ficha' : `han importado ${r.importadas} fichas`} en la reserva ${r.reserva.referencia}. Revisa los avisos de cada viajero (p. ej. el código INE del municipio).` })
+    setAviso({ ok: true, ruta: `/reservas/${r.reserva.id}`, texto: `Se ${r.importadas === 1 ? 'ha importado 1 ficha' : `han importado ${r.importadas} fichas`} en la reserva ${r.reserva.referencia}. Revisa los avisos de cada viajero (p. ej. el código INE del municipio).` })
     ir(`/reservas/${r.reserva.id}`)
   }
 
-  // El aviso de una importación se borra al salir de la pantalla a la que lleva
-  const rutaAviso = useRef(ruta)
   useEffect(() => {
-    if (aviso && rutaAviso.current !== ruta && !ruta.startsWith('/reservas/')) setAviso(undefined)
-    rutaAviso.current = ruta
+    if (!aviso) return
+    if (ruta === (aviso.ruta ?? ruta)) avisoMostrado.current = true
+    else if (avisoMostrado.current) {
+      avisoMostrado.current = false
+      setAvisoEstado(undefined)
+    }
   }, [ruta, aviso])
+  const verAviso = aviso && ruta === (aviso.ruta ?? ruta)
+
+  const asistente = app.preferencias.asistente
+  const asistentePendiente = asistente && !asistente.terminado && !asistente.saltado
+  const copia = recordatorioCopia(app.preferencias.copias, ahora, app.reservas.filter((r) => !r.prueba).length)
 
   return (
     <>
@@ -114,12 +129,12 @@ export function Recepcion() {
       </header>
 
       <main id="contenido" tabIndex={-1}>
-        {!app.establecimiento && seccionAjustes !== 'establecimiento' && (
+        {!app.establecimiento && seccionAjustes !== 'establecimiento' && ruta !== '/primeros-pasos' && (
           <p className="aviso-plazo aviso-plazo-proximo" role="status">
             <strong>Configura tu establecimiento</strong> (nombre y código) en <a href="#/ajustes/establecimiento">Ajustes → Establecimiento</a> antes de generar enlaces o exportar.
           </p>
         )}
-        {aviso && (
+        {aviso && verAviso && (
           <p role={aviso.ok ? 'status' : 'alert'} className={`mensaje ${aviso.ok ? 'mensaje-ok' : 'mensaje-error'}`}>
             <span aria-hidden="true">{aviso.ok ? '✔ ' : '✖ '}</span>
             {aviso.texto}
@@ -136,6 +151,24 @@ export function Recepcion() {
             {app.purga && app.purga.conAviso.length > 0 && (
               <p className="ayuda" role="status">
                 <Icono nombre="aviso" /> {app.purga.conAviso.length} {app.purga.conAviso.length === 1 ? 'reserva cumple' : 'reservas cumplen'} 3 años pronto (la primera, el {app.purga.proximaPurga ? fechaCorta(app.purga.proximaPurga) : ''}) y se eliminará automáticamente. <a href="#/ajustes/conservacion">Ver cuáles</a>.
+              </p>
+            )}
+            {asistentePendiente && (
+              <div className="tarjeta tarjeta-info">
+                <p>
+                  <Icono nombre="bandera" /> <strong>Te quedan pasos de la puesta en marcha.</strong> El asistente te guía con una reserva de prueba.
+                </p>
+                <div className="acciones">
+                  <button type="button" className="primario" onClick={() => ir('/primeros-pasos')}>
+                    {`Continuar los primeros pasos (paso ${Math.max(asistente.paso, 2)} de ${TOTAL_PASOS})`}
+                  </button>
+                </div>
+              </div>
+            )}
+            {copia && (
+              <p className="tarjeta tarjeta-aviso recordatorio-copia" role="status">
+                <Icono nombre="copia" />{' '}
+                {copia.tipo === 'nunca' ? <strong>Todavía no has hecho ninguna copia de seguridad.</strong> : <strong>{`Hace ${copia.dias} días de tu última copia de seguridad.`}</strong>} Los datos solo están en este dispositivo. <a href="#/ajustes/copias">Hacer una copia ahora</a>
               </p>
             )}
             {escaneando && (
@@ -219,6 +252,15 @@ export function Recepcion() {
 
         {enAjustes && <Ajustes key={seccionAjustes ?? 'indice'} seccion={seccionAjustes} />}
         {ruta === '/ayuda' && <Ayuda />}
+        {ruta === '/primeros-pasos' && (
+          <Asistente
+            onSalir={(texto) => {
+              setAviso({ ok: true, texto, ruta: '/' })
+              ir('/')
+            }}
+            onAbrirReserva={(id) => ir(`/reservas/${id}`)}
+          />
+        )}
       </main>
 
       <footer className="pie">
