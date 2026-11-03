@@ -75,7 +75,8 @@ describe('validarCIF: control según el tipo de entidad', () => {
 
   it('rechaza un control incorrecto en todas las entidades, indicando el esperado', () => {
     for (const org of ENTIDADES) {
-      const r = validarCIF(`${org}2801586X`.replace('X', org === 'A' ? 'J' : 'J'))
+      // Con el cuerpo 2801586 el control correcto es 5 / E; el dígito 0 no vale para ninguna entidad
+      const r = validarCIF(`${org}28015860`)
       expect(r.ok, org).toBe(false)
       if (!r.ok) expect(r.codigo, org).toBe('control')
     }
