@@ -18,7 +18,7 @@ afterEach(() => vi.unstubAllEnvs())
 
 const instantanea = () =>
   [
-    ...[...document.querySelectorAll('table button')].map((b) => b.textContent),
+    ...[...document.querySelectorAll('main li button')].map((b) => b.textContent),
     document.body.textContent?.includes('Configura tu establecimiento') ? '+aviso-config' : '',
     document.querySelector('.aviso-plazo-vencido, .aviso-plazo-proximo') ? '+aviso-plazo' : '',
   ].join('|')
@@ -51,5 +51,6 @@ describe('Entrar en la demo', () => {
     expect(screen.getAllByRole('button', { name: /Abrir reserva DEMO-/ }).length).toBeGreaterThan(0)
     expect(estados, estados.join('\n')).toHaveLength(1)
     expect(estados[0]).not.toContain('+aviso-config')
+    expect(estados[0]?.split('|').filter((x) => x.startsWith('Abrir')).length).toBeGreaterThan(2)
   })
 })

@@ -1,6 +1,6 @@
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { axeSinContraste as axe, TIMEOUT_AXE } from '../axe'
 import { AppProvider, useApp, type DatosIniciales } from '../../src/app/AppContext'
@@ -16,8 +16,11 @@ beforeEach(() => {
 /** Crea un almacén con estos datos y muestra la recepción (sin pasar por la pantalla de contraseña). */
 function Sembrar({ datos }: { datos: DatosIniciales }) {
   const app = useApp()
+  const hecho = useRef(false)
   useEffect(() => {
-    if (app.fase === 'sin_almacen') void app.crear('clave-de-pruebas', datos)
+    if (app.fase !== 'sin_almacen' || hecho.current) return
+    hecho.current = true
+    void app.crear('clave-de-pruebas', datos)
   }, [app, datos])
   return app.fase === 'listo' ? <Recepcion /> : null
 }
