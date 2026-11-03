@@ -6,6 +6,7 @@ import { hoyISO } from '../validators/fechas'
 import { validarReserva } from '../validators/reserva'
 import { Entrada, Grupo, ResumenErrores, Selector } from './campos'
 import { nuevoId } from './formato'
+import { Pista } from './Pista'
 
 const CANALES = ['Directo', 'Teléfono', 'Booking.com', 'Airbnb', 'Expedia', 'Otro']
 
@@ -64,7 +65,21 @@ export function ReservaForm({ inicial, ahora, onGuardar, onCancelar }: { inicial
       <Grupo leyenda="Contrato y estancia">
         <Entrada {...p('referencia')} valor={r.referencia} onCambio={(v) => setR({ ...r, referencia: v })} obligatorio ayuda="Número de referencia del contrato (máx. 50 caracteres)." maxLength={50} />
         <Entrada {...p('fechaContrato')} tipo="date" valor={r.fechaContrato} onCambio={(v) => setR({ ...r, fechaContrato: v })} obligatorio ayuda="Día en que se formalizó la reserva." />
-        <Entrada {...p('entrada')} tipo="datetime-local" valor={r.entrada} onCambio={(v) => setR({ ...r, entrada: v })} obligatorio ayuda="Entrada prevista. Si no sabes la hora, deja las 00:00." />
+        <Entrada
+          {...p('entrada')}
+          tipo="datetime-local"
+          valor={r.entrada}
+          onCambio={(v) => setR({ ...r, entrada: v })}
+          obligatorio
+          ayuda="Entrada prevista. Si no sabes la hora, deja las 00:00."
+          pista={
+            <Pista titulo="¿Desde cuándo cuentan las 24 h?">
+              <p>
+                La app cuenta las 24 h para comunicar el parte <strong>desde la entrada prevista</strong> que pongas aquí, y te avisa en «Hoy» cuando quedan menos de 6 h. El plazo viene del Real Decreto 933/2021, no del documento técnico; confirma con tu asesoría cómo se computa (pendiente P12).
+              </p>
+            </Pista>
+          }
+        />
         <Entrada {...p('salida')} tipo="datetime-local" valor={r.salida} onCambio={(v) => setR({ ...r, salida: v })} obligatorio />
         <Entrada {...p('numPersonas')} tipo="number" inputMode="numeric" min="1" valor={String(r.numPersonas)} onCambio={(v) => setR({ ...r, numPersonas: v === '' ? Number.NaN : Number(v) })} obligatorio />
         <Entrada {...p('numHabitaciones')} tipo="number" inputMode="numeric" min="1" valor={r.numHabitaciones === undefined ? '' : String(r.numHabitaciones)} onCambio={(v) => setR({ ...r, numHabitaciones: v === '' ? undefined : Number(v) })} marca="opcional" />
@@ -74,7 +89,21 @@ export function ReservaForm({ inicial, ahora, onGuardar, onCancelar }: { inicial
         <Selector id="r-canal" etiqueta="Canal de reserva" valor={CANALES.includes(r.canal) ? r.canal : 'Otro'} onCambio={(v) => setR({ ...r, canal: v })} opciones={CANALES.map((c) => ({ valor: c, texto: c }))} />
       </Grupo>
       <Grupo leyenda="Pago">
-        <Selector {...p('pago.tipoPago')} valor={r.pago.tipoPago} onCambio={(v) => setR({ ...r, pago: { ...r.pago, tipoPago: v as Reserva['pago']['tipoPago'] } })} opciones={tiposPago} vacio="Elige una opción" obligatorio />
+        <Selector
+          {...p('pago.tipoPago')}
+          valor={r.pago.tipoPago}
+          onCambio={(v) => setR({ ...r, pago: { ...r.pago, tipoPago: v as Reserva['pago']['tipoPago'] } })}
+          opciones={tiposPago}
+          vacio="Elige una opción"
+          obligatorio
+          pista={
+            <Pista titulo="¿Qué forma de pago elijo?">
+              <p>
+                Cómo se paga la estancia. Las opciones son exactamente las de la tabla oficial (apartado 8.7). Si se paga en el alojamiento al llegar, «Pago en destino»; si no sabes aún, la que tengas prevista. Es el único dato del pago que el documento exige (§7.2).
+              </p>
+            </Pista>
+          }
+        />
         <Entrada {...p('pago.fechaPago')} tipo="date" valor={r.pago.fechaPago ?? ''} onCambio={(v) => setR({ ...r, pago: { ...r.pago, fechaPago: v || undefined } })} marca="opcional" />
         <Entrada {...p('pago.medioPago')} valor={r.pago.medioPago ?? ''} onCambio={(v) => setR({ ...r, pago: { ...r.pago, medioPago: v || undefined } })} marca="opcional" ayuda="El documento oficial no lo exige. Evita guardar números completos de tarjeta." maxLength={50} />
       </Grupo>

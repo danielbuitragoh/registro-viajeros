@@ -23,8 +23,11 @@ describe('Aplicación con almacén cifrado real (IndexedDB en memoria)', () => {
     await user.type(await screen.findByLabelText('Contraseña'), 'clave-del-hostal')
     await user.type(screen.getByLabelText('Repite la contraseña'), 'clave-del-hostal')
     await user.click(screen.getByLabelText(/no se pueden recuperar/))
-    await user.click(screen.getByRole('button', { name: 'Crear y entrar' }))
+    await user.click(screen.getByRole('button', { name: 'Crear y seguir' }))
 
+    // Primer uso: se abre el asistente (paso 2); se puede saltar
+    expect(await screen.findByRole('heading', { name: 'Datos del establecimiento' })).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Saltar los primeros pasos' }))
     expect(await screen.findByRole('heading', { name: 'Lista del día' })).toBeInTheDocument()
     expect(screen.getByText(/Configura tu establecimiento/)).toBeInTheDocument()
     expect(screen.getByText(/no oficial/)).toBeInTheDocument()
@@ -50,7 +53,8 @@ describe('Aplicación con almacén cifrado real (IndexedDB en memoria)', () => {
     await user.type(await screen.findByLabelText('Contraseña'), 'clave-del-hostal')
     await user.type(screen.getByLabelText('Repite la contraseña'), 'clave-del-hostal')
     await user.click(screen.getByLabelText(/no se pueden recuperar/))
-    await user.click(screen.getByRole('button', { name: 'Crear y entrar' }))
+    await user.click(screen.getByRole('button', { name: 'Crear y seguir' }))
+    await user.click(await screen.findByRole('button', { name: 'Saltar los primeros pasos' }))
     await screen.findByRole('heading', { name: 'Lista del día' })
 
     await user.click(screen.getByRole('button', { name: 'Nueva reserva' }))
@@ -75,7 +79,8 @@ describe('Aplicación con almacén cifrado real (IndexedDB en memoria)', () => {
     await user.type(await screen.findByLabelText('Contraseña'), 'clave-del-hostal')
     await user.type(screen.getByLabelText('Repite la contraseña'), 'clave-del-hostal')
     await user.click(screen.getByLabelText(/no se pueden recuperar/))
-    await user.click(screen.getByRole('button', { name: 'Crear y entrar' }))
+    await user.click(screen.getByRole('button', { name: 'Crear y seguir' }))
+    await user.click(await screen.findByRole('button', { name: 'Saltar los primeros pasos' }))
     await screen.findByRole('heading', { name: 'Lista del día' })
     scrollTo.mockClear()
 

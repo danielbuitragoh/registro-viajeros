@@ -1,5 +1,6 @@
 import type { Incidencia, Viajero } from '../domain/tipos'
 import { PARENTESCO, SEXO, TIPO_DOCUMENTO, esCodigo } from '../oficial/codigos'
+import { REGLAS_DOCUMENTO } from '../oficial/documentos'
 import { alfa3Espana, esPaisAlfa3 } from '../oficial/paises'
 import { fechaLegible, nombreCoincide, type ConsultaIne } from '../ine/relacion'
 import { validarDireccion } from './direccion'
@@ -40,7 +41,7 @@ export function validarViajero(v: Viajero, ctx: ContextoViajero): Incidencia[] {
   if (vacio(v.apellido1)) out.push(err('apellido1', 'requerido'))
   else if (v.apellido1.length > 50) out.push(err('apellido1', 'longitud_max', { max: 50 }))
   if (v.apellido2 && v.apellido2.length > 50) out.push(err('apellido2', 'longitud_max', { max: 50 }))
-  if (parte && v.tipoDocumento === 'NIF' && vacio(v.apellido2)) out.push(err('apellido2', 'apellido2_requerido_nif'))
+  if (parte && esCodigo(TIPO_DOCUMENTO, v.tipoDocumento) && REGLAS_DOCUMENTO[v.tipoDocumento].apellido2Obligatorio && vacio(v.apellido2)) out.push(err('apellido2', 'apellido2_requerido_nif'))
 
   // --- Fecha de nacimiento y edad ---
   let edad: number | undefined
@@ -67,7 +68,7 @@ export function validarViajero(v: Viajero, ctx: ContextoViajero): Incidencia[] {
     if (vacio(v.tipoDocumento)) out.push(err('tipoDocumento', 'requerido'))
     else if (tipoValido) out.push(...validarNumeroDocumento(v))
   }
-  if (parte && (v.tipoDocumento === 'NIF' || v.tipoDocumento === 'NIE')) {
+  if (parte && esCodigo(TIPO_DOCUMENTO, v.tipoDocumento) && REGLAS_DOCUMENTO[v.tipoDocumento].soporteObligatorio) {
     if (vacio(v.soporteDocumento)) out.push(err('soporteDocumento', 'requerido'))
     else if (!/^[A-Z0-9]{1,9}$/.test(normalizarDocumento(v.soporteDocumento as string))) {
       // PENDIENTE-OFICIAL (P10): solo se conoce la longitud (String(9)); el formato exacto no está en el documento.
@@ -135,14 +136,30 @@ function validarNumeroDocumento(v: Viajero): Incidencia[] {
       return [err(campo, base, v.tipoDocumento === 'NIF' ? { esperada: r.esperada ?? '', tipo: 'DNI' } : { esperada: r.esperada ?? '', tipo: 'NIE' })]
     }
     case 'PAS': {
+      const otro = pareceDocumentoEspanol(num)
+      if (otro) return [otro]
       const r = validarPasaporte(num, v.nacionalidad)
       if (!r.ok) return [err(campo, r.codigo === 'caracteres' ? 'pasaporte_caracteres' : 'pasaporte_longitud')]
       if (r.aviso) return [aviso(campo, r.aviso === 'formato_pais' ? 'pasaporte_formato_pais' : 'pasaporte_longitud_inusual')]
       return []
     }
-    case 'OTRO':
-      return num.trim().length > 15 ? [err(campo, 'longitud_max', { max: 15 })] : []
+    case 'OTRO': {
+      if (num.trim().length > REGLAS_DOCUMENTO.OTRO.longitudMax) return [err(campo, 'longitud_max', { max: REGLAS_DOCUMENTO.OTRO.longitudMax })]
+      const otro = pareceDocumentoEspanol(num)
+      return otro ? [otro] : []
+    }
     default:
       return []
   }
+}
+
+/**
+ * §3: el número «deberá corresponder al tipo de documento». Si con tipo PAS u OTRO se escribe un DNI o NIE con su letra
+ * de control CORRECTA, casi seguro se ha elegido mal el tipo: se avisa (no bloquea; un pasaporte podría coincidir).
+ */
+function pareceDocumentoEspanol(num: string): Incidencia | undefined {
+  const r = validarDNI(num)
+  if (r.ok && !r.aviso) return aviso('numeroDocumento', 'doc_parece_dni_otro_tipo')
+  if (validarNIE(num).ok) return aviso('numeroDocumento', 'doc_parece_nie_otro_tipo')
+  return undefined
 }

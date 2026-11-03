@@ -146,7 +146,9 @@ describe('Modo huésped — flujo completo', () => {
     const user = userEvent.setup()
     render(<Huesped datos={datos} />)
     await user.click(screen.getByRole('button', { name: 'Empezar' }))
-    expect(screen.getByRole('button', { name: 'Terminar y obtener el código' })).toBeDisabled()
+    // Sin viajeros no hay botón de terminar (un botón deshabilitado no explica nada): el estado vacío dice qué hacer
+    expect(screen.queryByRole('button', { name: 'Terminar y obtener el código' })).not.toBeInTheDocument()
+    expect(screen.getByText(/Pulsa «Añadir viajero» para rellenar/)).toBeInTheDocument()
     await anadirAdulto(user)
     expect(screen.getByRole('button', { name: 'Terminar y obtener el código' })).toBeEnabled()
   })

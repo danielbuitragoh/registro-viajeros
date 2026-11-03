@@ -34,6 +34,33 @@ describe('Exportar', () => {
     expect(screen.getByLabelText(/MALA/)).not.toBeChecked()
   })
 
+  it('la reserva de prueba (asistente) no se preselecciona, lleva la marca «Prueba» y, si se incluye, avisa de no subirla', async () => {
+    const user = userEvent.setup()
+    const prueba = reserva({ id: 'pr', referencia: 'PRUEBA-1', prueba: true })
+    montar([buena, prueba])
+    const casilla = screen.getByLabelText(/PRUEBA-1/)
+    expect(casilla).not.toBeChecked()
+    expect(screen.getByText('Prueba', { selector: '.chip' })).toBeInTheDocument()
+    await user.click(casilla)
+    await user.click(screen.getByRole('button', { name: 'Validar y generar fichero' }))
+    expect(await screen.findByText(/incluye la reserva de prueba PRUEBA-1: NO subas este fichero al portal/)).toBeInTheDocument()
+  })
+
+  it('el siguiente paso tras descargar es subirlo al portal: lo dice como paso destacado', async () => {
+    const user = userEvent.setup()
+    montar([buena])
+    await user.click(screen.getByRole('button', { name: 'Validar y generar fichero' }))
+    await user.click(await screen.findByRole('button', { name: 'Descargar XML' }))
+    const paso = (await screen.findByRole('heading', { name: 'Último paso: súbelo tú al portal SES.Hospedajes' })).closest('section') as HTMLElement
+    expect(paso).toHaveTextContent(/hasta entonces, la comunicación NO está hecha/)
+    expect(paso).toHaveTextContent(/programa de gestión/)
+  })
+
+  it('sin reservas: estado vacío que dice qué hacer', () => {
+    montar([])
+    expect(screen.getByText(/Todavía no hay reservas que exportar/)).toBeInTheDocument()
+  })
+
   it('valida, permite descargar y marca las reservas como exportadas', async () => {
     const user = userEvent.setup()
     const onExportadas = montar()

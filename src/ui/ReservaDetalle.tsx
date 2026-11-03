@@ -8,8 +8,12 @@ import { EnlaceHuesped } from './EnlaceHuesped'
 import { ChipEstado, TextoPlazo } from './Estado'
 import { FormularioViajero, viajeroVacio } from './FormularioViajero'
 import { ReservaForm } from './ReservaForm'
-import { fechaHoraCorta, nuevoId } from './formato'
+import { fechaCorta, fechaHoraCorta, nuevoId } from './formato'
 import { useRelacionesIne } from '../ine/useIne'
+import { siguientePaso, type SiguientePaso } from '../domain/siguientePaso'
+import { TIPO_PAGO, esCodigo } from '../oficial/codigos'
+import { Icono } from './Icono'
+import { Migas } from './Migas'
 
 export interface ReservaDetalleProps {
   reserva: Reserva
@@ -18,11 +22,13 @@ export interface ReservaDetalleProps {
   onGuardar: (r: Reserva) => Promise<void>
   onBorrar: (id: string) => Promise<void>
   onVolver: () => void
+  /** Ir a Exportar (desde el «siguiente paso»). */
+  onExportar?: () => void
 }
 
 const nombre = (v: Viajero) => `${v.nombre} ${v.apellido1}`.trim() || '(sin nombre)'
 
-export function ReservaDetalle({ reserva, establecimiento, ahora, onGuardar, onBorrar, onVolver }: ReservaDetalleProps) {
+export function ReservaDetalle({ reserva, establecimiento, ahora, onGuardar, onBorrar, onExportar }: ReservaDetalleProps) {
   const [editandoReserva, setEditandoReserva] = useState(false)
   const [editandoViajero, setEditandoViajero] = useState<string | null>(null)
   const [confirmarBorrado, setConfirmarBorrado] = useState(false)
@@ -64,53 +70,25 @@ export function ReservaDetalle({ reserva, establecimiento, ahora, onGuardar, onB
 
   return (
     <div>
-      <p>
-        <button type="button" className="enlace" onClick={onVolver}>
-          ← Volver
-        </button>
-      </p>
+      <Migas items={[{ texto: 'Reservas', ruta: '/reservas' }, { texto: `Reserva ${reserva.referencia || '(sin referencia)'}` }]} />
       <h1>Reserva {reserva.referencia || '(sin referencia)'}</h1>
       <p className="fila-estado">
         <ChipEstado estado={estado} /> <span className="sep">·</span> Plazo 24 h: <TextoPlazo plazo={plazo} exportado={estado === 'exportado'} />
+        {reserva.prueba && <span className="chip chip-prueba">Reserva de prueba: no la subas al portal</span>}
       </p>
 
-      {editandoReserva ? (
-        <ReservaForm
-          inicial={reserva}
-          ahora={ahora}
-          onGuardar={async (r) => {
-            await onGuardar(r)
-            setEditandoReserva(false)
-          }}
-          onCancelar={() => setEditandoReserva(false)}
-        />
-      ) : (
-        <section aria-labelledby="t-datos">
-          <h2 id="t-datos">Datos de la reserva</h2>
-          <dl className="datos">
-            <dt>Entrada</dt>
-            <dd>{fechaHoraCorta(reserva.entrada)}</dd>
-            <dt>Salida</dt>
-            <dd>{fechaHoraCorta(reserva.salida)}</dd>
-            <dt>Personas</dt>
-            <dd>{reserva.numPersonas}</dd>
-            <dt>Habitación</dt>
-            <dd>{reserva.habitacion || '—'}</dd>
-            <dt>Canal</dt>
-            <dd>{reserva.canal || '—'}</dd>
-            <dt>Pago</dt>
-            <dd>{reserva.pago.tipoPago}</dd>
-          </dl>
-          <button type="button" className="secundario" onClick={() => setEditandoReserva(true)}>
-            Editar datos de la reserva
-          </button>
-        </section>
-      )}
+      <TarjetaSiguientePaso paso={siguientePaso(reserva)} exportadaEn={reserva.exportadaEn} onExportar={onExportar} />
 
       <section aria-labelledby="t-viajeros">
         <h2 id="t-viajeros">Viajeros ({reserva.viajeros.length}/{reserva.numPersonas})</h2>
         {reserva.viajeros.length === 0 ? (
-          <p>Todavía no hay fichas. Envía el enlace al huésped o rellénalas aquí.</p>
+          <div className="vacio">
+            <Icono nombre="persona" />
+            <p>
+              <strong>Todavía no hay fichas.</strong>
+            </p>
+            <p>Envía el enlace al huésped (más abajo, «Ficha rellenada por el huésped») o rellénalas aquí.</p>
+          </div>
         ) : (
           <ul className="lista-tarjetas">
             {reserva.viajeros.map((v, i) => {
@@ -141,13 +119,18 @@ export function ReservaDetalle({ reserva, establecimiento, ahora, onGuardar, onB
             })}
           </ul>
         )}
-        <button type="button" className="secundario" onClick={() => setEditandoViajero(nuevoId())}>
-          Añadir viajero (rellenar en recepción)
-        </button>
+        <div className="acciones">
+          <button type="button" className="secundario" onClick={() => setEditandoViajero(nuevoId())}>
+            <Icono nombre="mas" />
+            Añadir viajero (rellenar en recepción)
+          </button>
+        </div>
       </section>
 
+      <EnlaceHuesped reserva={reserva} establecimiento={establecimiento} onGuardar={onGuardar} />
+
       <section aria-labelledby="t-revision">
-        <h2 id="t-revision">Revisión del parte</h2>
+        <h2 id="t-revision" tabIndex={-1}>Revisión del parte</h2>
         {incidencias.length === 0 ? (
           <p className="mensaje mensaje-ok">
             <span aria-hidden="true">✔ </span>Sin incidencias: el parte está listo para exportar.
@@ -162,6 +145,14 @@ export function ReservaDetalle({ reserva, establecimiento, ahora, onGuardar, onB
                   <span className="solo-lectores">{i.gravedad === 'error' ? 'Error' : 'Aviso'}: </span>
                   {v && <strong>{nombre(v)} — </strong>}
                   {etiquetaCampo(i.campo, 'es')}: {mensajeIncidencia(i, 'es')}
+                  {v && (
+                    <>
+                      {' '}
+                      <button type="button" className="enlace" onClick={() => setEditandoViajero(v.id)}>
+                        Corregir<span className="solo-lectores"> la ficha de {nombre(v)}</span>
+                      </button>
+                    </>
+                  )}
                 </li>
               )
             })}
@@ -169,7 +160,39 @@ export function ReservaDetalle({ reserva, establecimiento, ahora, onGuardar, onB
         )}
       </section>
 
-      <EnlaceHuesped reserva={reserva} establecimiento={establecimiento} onGuardar={onGuardar} />
+      {editandoReserva ? (
+        <ReservaForm
+          inicial={reserva}
+          ahora={ahora}
+          onGuardar={async (r) => {
+            await onGuardar(r)
+            setEditandoReserva(false)
+          }}
+          onCancelar={() => setEditandoReserva(false)}
+        />
+      ) : (
+        <section aria-labelledby="t-datos">
+          <h2 id="t-datos">Datos de la reserva</h2>
+          <dl className="datos">
+            <dt>Entrada</dt>
+            <dd>{fechaHoraCorta(reserva.entrada)}</dd>
+            <dt>Salida</dt>
+            <dd>{fechaHoraCorta(reserva.salida)}</dd>
+            <dt>Personas</dt>
+            <dd>{reserva.numPersonas}</dd>
+            <dt>Habitación</dt>
+            <dd>{reserva.habitacion || '—'}</dd>
+            <dt>Canal</dt>
+            <dd>{reserva.canal || '—'}</dd>
+            <dt>Pago</dt>
+            <dd>{esCodigo(TIPO_PAGO, reserva.pago.tipoPago) ? TIPO_PAGO[reserva.pago.tipoPago].es : reserva.pago.tipoPago}</dd>
+          </dl>
+          <button type="button" className="secundario" onClick={() => setEditandoReserva(true)}>
+            Editar datos de la reserva
+          </button>
+        </section>
+      )}
+
 
       <section aria-labelledby="t-borrar">
         <h2 id="t-borrar">Eliminar reserva</h2>
@@ -194,5 +217,38 @@ export function ReservaDetalle({ reserva, establecimiento, ahora, onGuardar, onB
         )}
       </section>
     </div>
+  )
+}
+
+const enfocar = (id: string) => {
+  const el = document.getElementById(id)
+  el?.scrollIntoView?.({ block: 'start' })
+  el?.focus()
+}
+
+/** Qué hacer ahora con esta reserva, en una frase y con su botón. */
+function TarjetaSiguientePaso({ paso, exportadaEn, onExportar }: { paso: SiguientePaso; exportadaEn?: string; onExportar?: () => void }) {
+  const contenido: Record<SiguientePaso['tipo'], { texto: string; boton?: { texto: string; accion: () => void } }> = {
+    enlace: { texto: 'Crea el enlace y envíaselo al huésped por WhatsApp o correo, o enséñale el QR en el mostrador. También puedes rellenar las fichas aquí.', boton: { texto: 'Ir al enlace del huésped', accion: () => enfocar('t-enlace') } },
+    esperar: { texto: 'El huésped ya tiene el enlace. Cuando te enseñe su QR, escanéalo con la cámara (o pega el código que te envíe).', boton: { texto: 'Ir al escáner', accion: () => enfocar('t-importar') } },
+    revisar: { texto: paso.tipo === 'revisar' ? `Hay ${paso.errores} ${paso.errores === 1 ? 'dato' : 'datos'} por revisar antes de exportar.` : '', boton: { texto: 'Ver la revisión', accion: () => enfocar('t-revision') } },
+    faltan: { texto: paso.tipo === 'faltan' ? `Faltan fichas: hay ${paso.fichas} de ${paso.personas}. Pide al resto que rellene su ficha o añádelas aquí.` : '' },
+    exportar: { texto: 'El parte está completo. Genera el fichero en Exportar y súbelo al portal SES.Hospedajes.', boton: onExportar ? { texto: 'Ir a Exportar', accion: onExportar } : undefined },
+    subir: { texto: `Fichero generado${exportadaEn ? ` el ${fechaCorta(exportadaEn)}` : ''}. Si aún no lo has subido al portal SES.Hospedajes, hazlo: hasta entonces la comunicación no está hecha.` },
+  }
+  const c = contenido[paso.tipo]
+  return (
+    <section className="siguiente-paso" aria-labelledby="t-siguiente">
+      <h2 id="t-siguiente">
+        <Icono nombre={paso.tipo === 'subir' ? 'hecho' : 'adelante'} />
+        Siguiente paso
+      </h2>
+      <p>{c.texto}</p>
+      {c.boton && (
+        <button type="button" className="primario" onClick={c.boton.accion}>
+          {c.boton.texto}
+        </button>
+      )}
+    </section>
   )
 }

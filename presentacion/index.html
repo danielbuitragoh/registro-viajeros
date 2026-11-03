@@ -3,7 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#1f4e79" />
+    <meta name="theme-color" content="#1f4e79" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0f151c" media="(prefers-color-scheme: dark)" />
+    <meta name="color-scheme" content="light dark" />
     <meta name="referrer" content="no-referrer" />
     <!--CSP-->
     <title>Registro de viajeros · Para pensiones, pisos turísticos y casas rurales</title>
@@ -16,7 +18,7 @@
   <body>
     <a class="saltar" href="#contenido">Saltar al contenido</a>
     <header class="cabecera">
-      <p class="marca">Registro de viajeros</p>
+      <p class="marca"><svg class="logo" viewBox="0 0 64 64" aria-hidden="true" focusable="false"><rect width="64" height="64" rx="12" fill="var(--primario)"/><path d="M14 46V26l18-12 18 12v20z" fill="none" stroke="var(--sobre-primario)" stroke-width="4" stroke-linejoin="round"/><path d="M26 46V34h12v12" fill="none" stroke="var(--sobre-primario)" stroke-width="4" stroke-linejoin="round"/></svg>Registro de viajeros</p>
       <nav aria-label="Idioma">
         <ul>
           <li><a href="./" lang="es" hreflang="es" aria-current="page">Español</a></li>
@@ -42,7 +44,7 @@
       </p>
 
       <figure>
-        <img src="img/lista-dia.webp" width="720" height="589" loading="lazy" decoding="async" alt="Pantalla de recepción: lista del día con el estado de cada parte (completo o pendiente) y el aviso de las 24 horas." />
+        <img src="img/lista-dia.webp" width="720" height="574" loading="lazy" decoding="async" alt="Pantalla de recepción «Hoy»: atajos para crear una reserva, escanear el QR de un huésped y exportar, aviso de las 24 horas y una tarjeta por reserva con su estado y el siguiente paso." />
         <figcaption>La lista del día en recepción (demo con datos ficticios).</figcaption>
       </figure>
 
@@ -58,7 +60,7 @@
       </section>
 
       <figure class="figura-movil">
-        <img src="img/huesped.webp" width="300" height="611" loading="lazy" decoding="async" alt="Formulario del huésped en un móvil, en francés, con el selector de idioma arriba." />
+        <img src="img/huesped.webp" width="300" height="611" loading="lazy" decoding="async" alt="Formulario del huésped en un móvil, en francés, con la ayuda «¿Qué documento elijo?» abierta." />
         <figcaption>El formulario que rellena el huésped en su móvil.</figcaption>
       </figure>
 
@@ -86,8 +88,8 @@
       <section aria-labelledby="h-pasos">
         <h2 id="h-pasos">Cómo empezar en 3 pasos</h2>
         <ol class="pasos">
-          <li><strong>Abre la app</strong> en el navegador del ordenador o la tablet de recepción (en la dirección donde la tengas publicada; para probar, en la demo) y <strong>crea la contraseña del establecimiento</strong>. Si quieres, instálala desde el navegador para usarla como una app, también sin conexión.</li>
-          <li>En <strong>Ajustes</strong>, pon los datos del establecimiento (el código que te dio SES.Hospedajes) y <strong>crea la primera reserva</strong>. Pulsa «Crear enlace para el huésped» y envíaselo por WhatsApp o correo.</li>
+          <li><strong>Abre la app</strong> en el navegador del ordenador o la tablet de recepción (en la dirección donde la tengas publicada; para probar, en la demo) y <strong>crea la contraseña del establecimiento</strong>: después te guía un asistente de primeros pasos, con una reserva de prueba que luego borras. Si quieres, instálala desde el navegador para usarla como una app, también sin conexión.</li>
+          <li>En el asistente (o después en Ajustes), pon los datos del establecimiento (el código que te dio SES.Hospedajes) y <strong>crea la primera reserva</strong>. Pulsa «Crear enlace para el huésped» y envíaselo por WhatsApp o correo.</li>
           <li><strong>Escanea el QR del huésped</strong>, revisa el parte y, cuando esté completo, ve a Exportar, descarga el fichero y <strong>súbelo tú al portal SES.Hospedajes</strong> dentro de las 24 horas.</li>
         </ol>
         <p>Y una costumbre: una copia de seguridad cifrada a la semana, guardada fuera de ese equipo.</p>

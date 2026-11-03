@@ -1,0 +1,113 @@
+/*
+ * Sistema de diseño de Registro de viajeros: UNA sola fuente de tokens para la app y la página de presentación.
+ * Colores con contraste AA comprobado en tests/contraste.test.ts (claro y oscuro). No definir colores en otro sitio.
+ *
+ * Tema: claro por defecto; oscuro si el sistema lo pide (prefers-color-scheme) salvo que se haya fijado «claro»,
+ * o si se fija «oscuro» a mano (data-theme en <html>, ver src/diseno/tema.ts).
+ */
+:root {
+  color-scheme: light;
+  /* Color */
+  --texto: #14202b;
+  --texto-suave: #3d4b59;
+  --fondo: #f7f9fb;
+  --fondo-suave: #edf1f5;
+  --superficie: #ffffff;
+  --campo-fondo: #ffffff;
+  --info-fondo: #e6eef7;
+  --borde: #6b7b8a;
+  --borde-suave: #c9d3dc;
+  --primario: #1f4e79;
+  --primario-hover: #163a5c;
+  --sobre-primario: #ffffff;
+  --error: #9b0000;
+  --error-fondo: #fdecec;
+  --aviso: #6b4200;
+  --aviso-fondo: #fff4d6;
+  --ok: #14532d;
+  --ok-fondo: #e6f4ea;
+  --foco: #0b57d0;
+
+  /* Tipografía: texto base 18 px (html 112,5 %) */
+  --fuente: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --fuente-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --fs-xs: 0.85rem;
+  --fs-s: 0.92rem;
+  --fs-m: 1rem;
+  --fs-l: 1.15rem;
+  --fs-xl: 1.35rem;
+  --fs-xxl: 1.7rem;
+  --interlineado: 1.5;
+
+  /* Espaciado (escala de 4 px a 48 px) */
+  --e-1: 0.25rem;
+  --e-2: 0.5rem;
+  --e-3: 0.75rem;
+  --e-4: 1rem;
+  --e-5: 1.5rem;
+  --e-6: 2rem;
+  --e-7: 3rem;
+
+  /* Forma */
+  --radio: 10px;
+  --radio-g: 14px;
+  --sombra: 0 1px 2px rgb(16 24 32 / 0.08), 0 2px 8px rgb(16 24 32 / 0.06);
+  --sombra-g: 0 6px 18px rgb(16 24 32 / 0.18);
+
+  /* Tamaños táctiles (WCAG 2.5.8 pide 24 px; aquí 48 px y 56 px en las acciones principales) */
+  --toque: 48px;
+  --toque-g: 56px;
+  --ancho-max: 62rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='claro']) {
+    color-scheme: dark;
+    --texto: #e8eef4;
+    --texto-suave: #b7c3cf;
+    --fondo: #0f151c;
+    --fondo-suave: #17202a;
+    --superficie: #1a2430;
+    --campo-fondo: #0b1016;
+    --info-fondo: #16293d;
+    --borde: #8494a4;
+    --borde-suave: #34424f;
+    --primario: #8ec5ff;
+    --primario-hover: #b5d9ff;
+    --sobre-primario: #0a1826;
+    --error: #ffa3a3;
+    --error-fondo: #3b1717;
+    --aviso: #ffd27d;
+    --aviso-fondo: #36290c;
+    --ok: #8edca9;
+    --ok-fondo: #11301d;
+    --foco: #ffb454;
+    --sombra: 0 1px 2px rgb(0 0 0 / 0.5), 0 2px 8px rgb(0 0 0 / 0.35);
+    --sombra-g: 0 6px 18px rgb(0 0 0 / 0.6);
+  }
+}
+
+:root[data-theme='oscuro'] {
+  color-scheme: dark;
+  --texto: #e8eef4;
+  --texto-suave: #b7c3cf;
+  --fondo: #0f151c;
+  --fondo-suave: #17202a;
+  --superficie: #1a2430;
+  --campo-fondo: #0b1016;
+  --info-fondo: #16293d;
+  --borde: #8494a4;
+  --borde-suave: #34424f;
+  --primario: #8ec5ff;
+  --primario-hover: #b5d9ff;
+  --sobre-primario: #0a1826;
+  --error: #ffa3a3;
+  --error-fondo: #3b1717;
+  --aviso: #ffd27d;
+  --aviso-fondo: #36290c;
+  --ok: #8edca9;
+  --ok-fondo: #11301d;
+  --foco: #ffb454;
+  --sombra: 0 1px 2px rgb(0 0 0 / 0.5), 0 2px 8px rgb(0 0 0 / 0.35);
+  --sombra-g: 0 6px 18px rgb(0 0 0 / 0.6);
+}

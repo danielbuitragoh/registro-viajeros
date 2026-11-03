@@ -39,6 +39,7 @@ test('sin conexión tras la primera carga: recepción, autocompletado de municip
 
   // Los trozos de la relación de municipios también están en el dispositivo
   await page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: 'Ajustes', exact: true }).click()
+  await page.getByRole('list', { name: 'Apartados de Ajustes' }).getByRole('link', { name: /Establecimiento/ }).click()
   const municipio = page.getByRole('combobox', { name: /^Nombre del municipio/ })
   await municipio.fill('aldea')
   await expect(page.getByRole('listbox').getByRole('option')).toHaveText(['Aldea de Prueba — 99002'])

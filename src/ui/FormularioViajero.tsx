@@ -11,6 +11,13 @@ import { Entrada, Grupo, ResumenErrores, Selector } from './campos'
 import { CampoMunicipio } from './CampoMunicipio'
 import { useRelacionesIne } from '../ine/useIne'
 import { fechaLegible } from '../ine/relacion'
+import { REGLAS_DOCUMENTO, ejemploDocumento } from '../oficial/documentos'
+import { esCodigo, TIPO_DOCUMENTO } from '../oficial/codigos'
+import { Pista } from './Pista'
+import { IlustracionSoporte } from './Ilustraciones'
+
+/** Código INE de ejemplo: el de la muestra FICTICIA de la demo (provincia 99, que no existe). Nunca un código real inventado. */
+const INE_EJEMPLO = { codigo: '99001', provincia: '99', municipio: '001' }
 
 export interface AdultoRef {
   id: string
@@ -150,27 +157,86 @@ export function FormularioViajero(props: FormularioViajeroProps) {
   }
 
   const docObligatorio = edad === undefined || !esMenor
+  const tipoDoc = esCodigo(TIPO_DOCUMENTO, v.tipoDocumento) ? v.tipoDocumento : undefined
+  const reglas = tipoDoc ? REGLAS_DOCUMENTO[tipoDoc] : undefined
 
   return (
     <form onSubmit={enviar} noValidate aria-labelledby={`${pref}-titulo`} lang={idioma}>
-      <h2 id={`${pref}-titulo`}>{tr('h.viajero.titulo', { n: numero })}</h2>
+      <h1 id={`${pref}-titulo`}>{tr('h.viajero.titulo', { n: numero })}</h1>
       <ResumenErrores refResumen={resumenRef} titulo={itemsResumen.length === 1 ? tr('f.resumen_errores_uno') : tr('f.resumen_errores', { n: itemsResumen.length })} items={itemsResumen} />
 
       <Grupo leyenda={tr('f.seccion.datos')}>
         <Entrada {...props_('nombre')} valor={v.nombre} onCambio={(x) => set('nombre', x)} autoComplete="given-name" obligatorio />
         <Entrada {...props_('apellido1')} valor={v.apellido1} onCambio={(x) => set('apellido1', x)} autoComplete="family-name" obligatorio />
-        <Entrada {...props_('apellido2')} valor={v.apellido2 ?? ''} onCambio={(x) => set('apellido2', x)} marca={marca(v.tipoDocumento === 'NIF')} />
+        <Entrada
+          {...props_('apellido2')}
+          valor={v.apellido2 ?? ''}
+          onCambio={(x) => set('apellido2', x)}
+          marca={marca(reglas?.apellido2Obligatorio ?? false)}
+          pista={
+            <Pista titulo={tr('f.apellido2.titulo')}>
+              <p>{tr('f.apellido2.texto')}</p>
+            </Pista>
+          }
+        />
         <Entrada {...props_('fechaNacimiento')} tipo="date" valor={v.fechaNacimiento} onCambio={(x) => set('fechaNacimiento', x)} autoComplete="bday" max={fechaEntrada} obligatorio />
         {esMenor && <p className="aviso-menor">{tr('h.menor', { edad: edad as number })}</p>}
+        {modo === 'huesped' && (
+          <Pista titulo={tr('f.menor.titulo')}>
+            <p>{tr('f.menor.texto')}</p>
+          </Pista>
+        )}
         <Selector {...props_('nacionalidad')} valor={v.nacionalidad ?? ''} onCambio={(x) => set('nacionalidad', x || undefined)} opciones={paises} vacio={tr('comun.ninguno')} autoComplete="country-name" marca={marca(false)} />
         <Selector {...props_('sexo')} valor={v.sexo ?? ''} onCambio={(x) => set('sexo', (x || undefined) as Viajero['sexo'])} opciones={sexos} vacio={tr('comun.ninguno')} marca={marca(false)} />
       </Grupo>
 
       <Grupo leyenda={tr('f.seccion.documento')} ayuda={docObligatorio ? tr('f.documento.ayuda_mayor') : tr('f.documento.ayuda_menor')}>
-        <Selector {...props_('tipoDocumento')} valor={v.tipoDocumento ?? ''} onCambio={(x) => set('tipoDocumento', (x || undefined) as Viajero['tipoDocumento'])} opciones={tipoDocs} vacio={tr('comun.elige')} obligatorio={docObligatorio} marca={marca(docObligatorio)} />
-        <Entrada {...props_('numeroDocumento')} valor={v.numeroDocumento ?? ''} onCambio={(x) => set('numeroDocumento', x)} obligatorio={docObligatorio} marca={marca(docObligatorio)} mayusculas maxLength={20} />
-        {(v.tipoDocumento === 'NIF' || v.tipoDocumento === 'NIE') && (
-          <Entrada {...props_('soporteDocumento')} valor={v.soporteDocumento ?? ''} onCambio={(x) => set('soporteDocumento', x)} obligatorio mayusculas maxLength={12} ayuda={tr('f.soporte_ayuda')} />
+        <Selector
+          {...props_('tipoDocumento')}
+          valor={v.tipoDocumento ?? ''}
+          onCambio={(x) => set('tipoDocumento', (x || undefined) as Viajero['tipoDocumento'])}
+          opciones={tipoDocs}
+          vacio={tr('comun.elige')}
+          obligatorio={docObligatorio}
+          marca={marca(docObligatorio)}
+          pista={
+            <Pista titulo={tr('f.doc.elegir.titulo')}>
+              <ul>
+                {Object.keys(TIPO_DOCUMENTO).map((c) => (
+                  <li key={c}>{tr(`f.doc.elegir.${c as keyof typeof TIPO_DOCUMENTO}`)}</li>
+                ))}
+              </ul>
+              <p>{tr('f.doc.elegir.menor')}</p>
+            </Pista>
+          }
+        />
+        <Entrada
+          {...props_('numeroDocumento')}
+          valor={v.numeroDocumento ?? ''}
+          onCambio={(x) => set('numeroDocumento', x)}
+          obligatorio={docObligatorio}
+          marca={marca(docObligatorio)}
+          mayusculas
+          maxLength={20}
+          ayuda={tipoDoc ? tr(`f.doc.formato.${tipoDoc}`, { ejemplo: ejemploDocumento(tipoDoc) ?? '' }) : undefined}
+        />
+        {reglas?.soporteObligatorio && (
+          <Entrada
+            {...props_('soporteDocumento')}
+            valor={v.soporteDocumento ?? ''}
+            onCambio={(x) => set('soporteDocumento', x)}
+            obligatorio
+            mayusculas
+            maxLength={12}
+            ayuda={tr('f.soporte_ayuda')}
+            pista={
+              <Pista titulo={tr('f.soporte.titulo')}>
+                <p>{tr('f.soporte.texto')}</p>
+                <p>{tr('f.soporte.donde')}</p>
+                <IlustracionSoporte numero={tr('f.soporte.ilu_numero')} soporte={tr('f.soporte.ilu_soporte')} nota={tr('f.ilustracion.nota')} />
+              </Pista>
+            }
+          />
         )}
       </Grupo>
 
@@ -204,12 +270,40 @@ export function FormularioViajero(props: FormularioViajeroProps) {
           <Entrada {...props_('direccion.nombreMunicipio')} etiqueta={esp ? tr('f.municipio_nombre_es') : etiquetaCampo('direccion.nombreMunicipio', idioma)} valor={v.direccion.nombreMunicipio ?? ''} onCambio={(x) => setDir('nombreMunicipio', x)} autoComplete="address-level2" obligatorio={!esp} marca={marca(!esp)} />
         )}
         {esp && (
-          <Entrada {...props_('direccion.codigoMunicipio')} valor={v.direccion.codigoMunicipio ?? ''} onCambio={(x) => setDir('codigoMunicipio', x)} inputMode="numeric" maxLength={5} ayuda={ayudaCodigo} obligatorio={modo === 'recepcion'} marca={marca(modo === 'recepcion')} />
+          <Entrada
+            {...props_('direccion.codigoMunicipio')}
+            valor={v.direccion.codigoMunicipio ?? ''}
+            onCambio={(x) => setDir('codigoMunicipio', x)}
+            inputMode="numeric"
+            maxLength={5}
+            ayuda={ayudaCodigo}
+            obligatorio={modo === 'recepcion'}
+            marca={marca(modo === 'recepcion')}
+            pista={
+              <Pista titulo={tr('f.ine.titulo')}>
+                <p>{tr('f.ine.texto')}</p>
+                <p>{tr('f.ine.ejemplo', INE_EJEMPLO)}</p>
+                <p>{modo === 'huesped' ? tr('f.ine.huesped') : tr('f.ine.recepcion')}</p>
+              </Pista>
+            }
+          />
         )}
       </Grupo>
 
       <Grupo leyenda={tr('f.seccion.contacto')} ayuda={tr('f.contacto.ayuda')}>
-        <Entrada {...props_('telefono')} tipo="tel" valor={v.telefono ?? ''} onCambio={(x) => set('telefono', x)} autoComplete="tel" inputMode="tel" />
+        <Entrada
+          {...props_('telefono')}
+          tipo="tel"
+          valor={v.telefono ?? ''}
+          onCambio={(x) => set('telefono', x)}
+          autoComplete="tel"
+          inputMode="tel"
+          pista={
+            <Pista titulo={tr('f.telefono.titulo')}>
+              <p>{tr('f.telefono.texto')}</p>
+            </Pista>
+          }
+        />
         <Entrada {...props_('telefono2')} tipo="tel" valor={v.telefono2 ?? ''} onCambio={(x) => set('telefono2', x)} inputMode="tel" marca={marca(false)} />
         <Entrada {...props_('correo')} tipo="email" valor={v.correo ?? ''} onCambio={(x) => set('correo', x)} autoComplete="email" inputMode="email" />
       </Grupo>

@@ -15,6 +15,11 @@ import { CampoMunicipio } from './CampoMunicipio'
 import { useRelacionesIne } from '../ine/useIne'
 import { fechaLegible } from '../ine/relacion'
 import { fechaCorta } from './formato'
+import { Icono, type NombreIcono } from './Icono'
+import { Migas } from './Migas'
+import { Pista } from './Pista'
+import { aplicarTema, leerTema, type Tema } from '../diseno/tema'
+import { COPIA_POR_DEFECTO, FRECUENCIAS_COPIA } from '../domain/preferencias'
 
 const vacio = (s: string | undefined) => s === undefined || s.trim() === ''
 
@@ -44,18 +49,94 @@ function descargarTexto(nombre: string, contenido: string, tipo: string) {
   URL.revokeObjectURL(url)
 }
 
-export function Ajustes() {
+export type SeccionAjustes = 'establecimiento' | 'copias' | 'apariencia' | 'seguridad' | 'conservacion' | 'borrar'
+
+const APARTADOS: { ruta: string; titulo: string; texto: string; icono: NombreIcono }[] = [
+  { ruta: '/ajustes/establecimiento', titulo: 'Establecimiento', texto: 'Nombre, tipo, código de SES.Hospedajes y dirección.', icono: 'inicio' },
+  { ruta: '/ajustes/copias', titulo: 'Copia de seguridad', texto: 'Descargar o restaurar una copia cifrada, y el recordatorio.', icono: 'copia' },
+  { ruta: '/primeros-pasos', titulo: 'Primeros pasos', texto: 'El asistente de 6 pasos, con una reserva de prueba.', icono: 'bandera' },
+  { ruta: '/ajustes/apariencia', titulo: 'Apariencia', texto: 'Tema claro u oscuro.', icono: 'tema' },
+  { ruta: '/ajustes/seguridad', titulo: 'Seguridad', texto: 'Bloqueo automático y cambio de contraseña.', icono: 'candado' },
+  { ruta: '/ajustes/conservacion', titulo: 'Conservación y purga', texto: 'Los datos se borran solos a los 3 años de la salida.', icono: 'hoy' },
+  { ruta: '/ajustes/borrar', titulo: 'Borrar todos los datos', texto: 'Eliminar todo de este dispositivo.', icono: 'papelera' },
+]
+
+const TITULOS: Record<SeccionAjustes, string> = {
+  establecimiento: 'Establecimiento',
+  copias: 'Copia de seguridad',
+  apariencia: 'Apariencia',
+  seguridad: 'Seguridad',
+  conservacion: 'Conservación y purga',
+  borrar: 'Borrar todos los datos',
+}
+
+export const esSeccionAjustes = (s: string | undefined): s is SeccionAjustes => !!s && s in TITULOS
+
+/** Ajustes: un índice y una subpágina por apartado (antes era una sola página muy larga). */
+export function Ajustes({ seccion }: { seccion?: SeccionAjustes }) {
   const app = useApp()
+  if (!seccion) {
+    return (
+      <section aria-labelledby="t-ajustes">
+        <h1 id="t-ajustes">Ajustes</h1>
+        <ul className="indice" aria-label="Apartados de Ajustes">
+          {APARTADOS.filter((a) => a.ruta !== '/ajustes/borrar' || app.fase === 'listo').map((a) => (
+            <li key={a.ruta}>
+              <a href={`#${a.ruta}`}>
+                <Icono nombre={a.icono} />
+                <span>
+                  <strong>{a.titulo}</strong>
+                  <span className="ayuda">{a.texto}</span>
+                </span>
+              </a>
+            </li>
+          ))}
+        </ul>
+        <Acerca />
+      </section>
+    )
+  }
   return (
-    <section aria-labelledby="t-ajustes">
-      <h1 id="t-ajustes">Ajustes</h1>
-      <FormEstablecimiento />
-      <Seguridad />
-      <Copias />
-      <Conservacion />
-      <Acerca />
-      {app.fase === 'listo' && <ZonaPeligro />}
+    <section aria-labelledby="t-seccion">
+      <Migas items={[{ texto: 'Ajustes', ruta: '/ajustes' }, { texto: TITULOS[seccion] }]} />
+      <h1 id="t-seccion">{TITULOS[seccion]}</h1>
+      {seccion === 'establecimiento' && <FormEstablecimiento />}
+      {seccion === 'copias' && <Copias />}
+      {seccion === 'apariencia' && <Apariencia />}
+      {seccion === 'seguridad' && <Seguridad />}
+      {seccion === 'conservacion' && <Conservacion />}
+      {seccion === 'borrar' && <ZonaPeligro />}
     </section>
+  )
+}
+
+function Apariencia() {
+  const [tema, setTema] = useState<Tema>(leerTema)
+  const opciones: { valor: Tema; texto: string }[] = [
+    { valor: 'auto', texto: 'Automático (como el sistema del dispositivo)' },
+    { valor: 'claro', texto: 'Claro' },
+    { valor: 'oscuro', texto: 'Oscuro' },
+  ]
+  return (
+    <fieldset>
+      <legend>Tema de color</legend>
+      <p className="ayuda">Se recuerda en este navegador. El oscuro cansa menos la vista de noche; los dos cumplen el contraste AA.</p>
+      {opciones.map((o) => (
+        <div key={o.valor} className="campo campo-check">
+          <input
+            id={`tema-${o.valor}`}
+            type="radio"
+            name="tema"
+            checked={tema === o.valor}
+            onChange={() => {
+              aplicarTema(o.valor)
+              setTema(o.valor)
+            }}
+          />
+          <label htmlFor={`tema-${o.valor}`}>{o.texto}</label>
+        </div>
+      ))}
+    </fieldset>
   )
 }
 
@@ -98,13 +179,23 @@ function FormEstablecimiento() {
   }
 
   return (
-    <form onSubmit={guardar} noValidate aria-labelledby="t-estab">
-      <h2 id="t-estab">Establecimiento</h2>
+    <form onSubmit={guardar} noValidate aria-label="Datos del establecimiento">
       <Grupo leyenda="Identificación">
         <Entrada id="e-nombre" etiqueta={etiquetaCampo('nombre_establecimiento', 'es')} valor={e.nombre} onCambio={(v) => setE({ ...e, nombre: v })} error={error('nombre_establecimiento')} obligatorio />
         <Selector id="e-tipo" etiqueta={etiquetaCampo('tipo', 'es')} valor={e.tipo} onCambio={(v) => setE({ ...e, tipo: v as Establecimiento['tipo'] })} opciones={Object.entries(TIPO_ESTABLECIMIENTO).map(([k, x]) => ({ valor: k, texto: x.es }))} />
-        <Entrada id="e-codigo" etiqueta="Código de establecimiento" valor={e.codigoEstablecimiento} onCambio={(v) => setE({ ...e, codigoEstablecimiento: v })} error={error('codigoEstablecimiento')} ayuda="Lo asigna el Sistema de Hospedajes al registrar el establecimiento (máx. 10 caracteres). Necesario para exportar partes de viajeros." maxLength={10} mayusculas />
-        <Entrada id="e-arrendador" etiqueta="Código de arrendador" valor={e.codigoArrendador ?? ''} onCambio={(v) => setE({ ...e, codigoArrendador: v || undefined })} marca="opcional" ayuda="Solo para tu referencia: el documento oficial no incluye este campo, así que no se exporta." />
+        <Entrada
+          id="e-codigo"
+          etiqueta="Código de establecimiento"
+          valor={e.codigoEstablecimiento}
+          onCambio={(v) => setE({ ...e, codigoEstablecimiento: v })}
+          error={error('codigoEstablecimiento')}
+          ayuda="Lo asigna el Sistema de Hospedajes al registrar el establecimiento (máx. 10 caracteres). Necesario para exportar partes de viajeros."
+          maxLength={10}
+          mayusculas
+          marca="si aún no lo tienes, déjalo en blanco"
+          pista={<PistaCodigoEstablecimiento />}
+        />
+        <Entrada id="e-arrendador" etiqueta="Código de arrendador" valor={e.codigoArrendador ?? ''} onCambio={(v) => setE({ ...e, codigoArrendador: v || undefined })} marca="opcional" ayuda="Solo para tu referencia: el documento oficial no incluye este campo, así que no se exporta." pista={<Pista titulo="¿Qué es el código de arrendador?"><p>Algunas comunidades o plataformas lo usan, pero el documento oficial del fichero <strong>no lo incluye</strong> (solo pide el código de establecimiento). Si no sabes qué es, déjalo en blanco: no afecta al fichero.</p></Pista>} />
         <Entrada id="e-nif" etiqueta="NIF/CIF del titular" valor={e.nifCif ?? ''} onCambio={(v) => setE({ ...e, nifCif: v || undefined })} error={error('nifCif')} marca="opcional" ayuda="Solo informativo: se comprueba la letra o dígito de control, pero no se exporta." mayusculas maxLength={12} />
       </Grupo>
       <Grupo leyenda="Dirección del establecimiento" ayuda="Se usa solo en reservas de hospedaje cuando no se informa el código de establecimiento.">
@@ -147,6 +238,20 @@ function FormEstablecimiento() {
   )
 }
 
+/** De dónde sale el código de establecimiento y qué hacer si aún no se tiene (§3 y §4 del documento oficial). */
+export function PistaCodigoEstablecimiento() {
+  return (
+    <Pista titulo="¿De dónde sale este código? ¿Y si aún no lo tengo?">
+      <p>
+        Es el código que el Sistema de Hospedajes asigna a tu establecimiento <strong>«en el momento del registro»</strong> (documento oficial, §3). Te lo da el propio sistema al dar de alta el establecimiento en SES.Hospedajes.
+      </p>
+      <p>
+        <strong>Si aún no lo tienes:</strong> déjalo en blanco y sigue; podrás crear reservas y recibir las fichas de los huéspedes. Añádelo aquí cuando lo tengas: sin él no se puede generar el fichero de <strong>partes de viajeros</strong> (§3). El de <strong>reservas de hospedaje</strong> admite en su lugar el nombre, tipo y dirección del establecimiento (§4).
+      </p>
+    </Pista>
+  )
+}
+
 function Seguridad() {
   const app = useApp()
   const [actual, setActual] = useState('')
@@ -170,8 +275,7 @@ function Seguridad() {
     }
   }
   return (
-    <form onSubmit={cambiar} noValidate aria-labelledby="t-seg">
-      <h2 id="t-seg">Seguridad</h2>
+    <form onSubmit={cambiar} noValidate aria-label="Seguridad">
       <p className="ayuda">El registro se bloquea solo tras 15 minutos sin actividad.</p>
       <div className="acciones">
         <button type="button" className="secundario" onClick={app.bloquear}>
@@ -198,26 +302,75 @@ function Seguridad() {
   )
 }
 
+/** Descargar una copia cifrada; anota la fecha para el recordatorio de «Hoy». */
+export function DescargarCopia() {
+  const app = useApp()
+  const [pass, setPass] = useState('')
+  const [msg, setMsg] = useState<{ ok: boolean; texto: string }>()
+  async function exportar(ev: React.FormEvent) {
+    ev.preventDefault()
+    setMsg(undefined)
+    try {
+      const json = await exportarCopia(app.almacen as NonNullable<typeof app.almacen>, pass)
+      descargarTexto(`copia-registro-viajeros_${new Date().toISOString().slice(0, 10)}.json`, json, 'application/json')
+      await app.guardarPreferencias({ ...app.preferencias, copias: { ...COPIA_POR_DEFECTO, ...app.preferencias.copias, ultima: new Date().toISOString() } })
+      setMsg({ ok: true, texto: 'Copia cifrada descargada. Guárdala fuera de este equipo (memoria USB, otro ordenador…) y no pierdas su contraseña.' })
+      setPass('')
+    } catch (e) {
+      setMsg({ ok: false, texto: e instanceof Error ? e.message : String(e) })
+    }
+  }
+  const ultima = app.preferencias.copias?.ultima
+  return (
+    <form onSubmit={exportar} noValidate>
+      <Grupo leyenda="Crear copia" ayuda="Un fichero cifrado con AES-GCM. Sin su contraseña es ilegible; puede ser distinta de la del establecimiento.">
+        <p className="ayuda">{ultima ? `Última copia en este dispositivo: ${fechaCorta(ultima)}.` : 'Todavía no has hecho ninguna copia en este dispositivo.'}</p>
+        <Entrada id="c-pass-exp" tipo="password" etiqueta="Contraseña de la copia" valor={pass} onCambio={setPass} autoComplete="new-password" />
+      </Grupo>
+      <div className="acciones">
+        <button type="submit" className="primario">
+          <Icono nombre="copia" />
+          Descargar copia
+        </button>
+      </div>
+      <Mensaje msg={msg} />
+    </form>
+  )
+}
+
+/** Cada cuánto recordar la copia en «Hoy». */
+export function FrecuenciaCopia() {
+  const app = useApp()
+  const copias = { ...COPIA_POR_DEFECTO, ...app.preferencias.copias }
+  return (
+    <Selector
+      id="c-frecuencia"
+      etiqueta="Recordarme hacer una copia"
+      valor={String(copias.cadaDias)}
+      onCambio={(v) => void app.guardarPreferencias({ ...app.preferencias, copias: { ...copias, cadaDias: Number(v) } })}
+      opciones={FRECUENCIAS_COPIA.map((f) => ({ valor: String(f.dias), texto: f.texto }))}
+      ayuda="El aviso sale en «Hoy». Sin notificaciones ni servidores: solo lo ves al abrir la app."
+    />
+  )
+}
+
+function Mensaje({ msg }: { msg?: { ok: boolean; texto: string } }) {
+  if (!msg) return null
+  return (
+    <p role={msg.ok ? 'status' : 'alert'} className={`mensaje ${msg.ok ? 'mensaje-ok' : 'mensaje-error'}`}>
+      <span aria-hidden="true">{msg.ok ? '✔ ' : '✖ '}</span>
+      {msg.texto}
+    </p>
+  )
+}
+
 function Copias() {
   const app = useApp()
-  const [passExp, setPassExp] = useState('')
   const [passImp, setPassImp] = useState('')
   const [modo, setModo] = useState<'fusionar' | 'reemplazar'>('fusionar')
   const [msg, setMsg] = useState<{ ok: boolean; texto: string }>()
   const fichero = useRef<HTMLInputElement>(null)
 
-  async function exportar(ev: React.FormEvent) {
-    ev.preventDefault()
-    setMsg(undefined)
-    try {
-      const json = await exportarCopia(app.almacen as NonNullable<typeof app.almacen>, passExp)
-      descargarTexto(`copia-registro-viajeros_${new Date().toISOString().slice(0, 10)}.json`, json, 'application/json')
-      setMsg({ ok: true, texto: 'Copia cifrada descargada. Guárdala en un lugar seguro y no pierdas su contraseña.' })
-      setPassExp('')
-    } catch (e) {
-      setMsg({ ok: false, texto: e instanceof Error ? e.message : String(e) })
-    }
-  }
   async function importar(ev: React.FormEvent) {
     ev.preventDefault()
     setMsg(undefined)
@@ -233,25 +386,17 @@ function Copias() {
     }
   }
   return (
-    <section aria-labelledby="t-copias">
-      <h2 id="t-copias">Copia de seguridad cifrada</h2>
-      <form onSubmit={exportar} noValidate>
-        <Grupo leyenda="Crear copia" ayuda="Un fichero cifrado con AES-GCM. Sin su contraseña es ilegible; puede ser distinta de la del establecimiento.">
-          <Entrada id="c-pass-exp" tipo="password" etiqueta="Contraseña de la copia" valor={passExp} onCambio={setPassExp} autoComplete="new-password" />
-        </Grupo>
-        <div className="acciones">
-          <button type="submit" className="secundario">
-            Descargar copia
-          </button>
-        </div>
-      </form>
+    <div>
+      <p>Los datos solo viven en este dispositivo. Haz una copia al menos una vez por semana y guárdala fuera de él: es la única forma de recuperarlos si el equipo se estropea o se pierde, o de pasarlos a otro.</p>
+      <DescargarCopia />
+      <FrecuenciaCopia />
       <form onSubmit={importar} noValidate>
-        <Grupo leyenda="Restaurar copia">
+        <Grupo leyenda="Restaurar copia" ayuda="Por ejemplo, al cambiar de ordenador: restaura aquí la copia que descargaste en el antiguo.">
           <div className="campo">
             <label htmlFor="c-fichero">Fichero de la copia</label>
             <input id="c-fichero" type="file" accept="application/json,.json" ref={fichero} />
           </div>
-          <Entrada id="c-pass-imp" tipo="password" etiqueta="Contraseña de la copia" valor={passImp} onCambio={setPassImp} autoComplete="current-password" />
+          <Entrada id="c-pass-imp" tipo="password" etiqueta="Contraseña de la copia que restauras" valor={passImp} onCambio={setPassImp} autoComplete="current-password" />
           <Selector id="c-modo" etiqueta="Qué hacer con los datos actuales" valor={modo} onCambio={(v) => setModo(v as typeof modo)} opciones={[{ valor: 'fusionar', texto: 'Fusionar (gana la versión más reciente de cada reserva)' }, { valor: 'reemplazar', texto: 'Reemplazar todo por el contenido de la copia' }]} />
         </Grupo>
         <div className="acciones">
@@ -259,14 +404,9 @@ function Copias() {
             Restaurar copia
           </button>
         </div>
+        <Mensaje msg={msg} />
       </form>
-      {msg && (
-        <p role={msg.ok ? 'status' : 'alert'} className={`mensaje ${msg.ok ? 'mensaje-ok' : 'mensaje-error'}`}>
-          <span aria-hidden="true">{msg.ok ? '✔ ' : '✖ '}</span>
-          {msg.texto}
-        </p>
-      )}
-    </section>
+    </div>
   )
 }
 
@@ -275,8 +415,7 @@ function Conservacion() {
   const [msg, setMsg] = useState<string>()
   const p = app.purga
   return (
-    <section aria-labelledby="t-cons">
-      <h2 id="t-cons">Conservación y purga</h2>
+    <div>
       <p>
         Los datos de cada reserva se conservan <strong>{ANIOS_CONSERVACION} años desde la fecha de salida</strong> y después se eliminan automáticamente al desbloquear la aplicación. Se avisa {DIAS_AVISO_PURGA} días antes.
       </p>
@@ -311,7 +450,7 @@ function Conservacion() {
           {msg}
         </p>
       )}
-    </section>
+    </div>
   )
 }
 
@@ -330,8 +469,7 @@ function ZonaPeligro() {
   const app = useApp()
   const [texto, setTexto] = useState('')
   return (
-    <section aria-labelledby="t-peligro">
-      <h2 id="t-peligro">Borrar todos los datos de este dispositivo</h2>
+    <div>
       <p>Elimina la base de datos cifrada, la configuración y todas las reservas. No se puede deshacer. Haz antes una copia de seguridad.</p>
       <Entrada id="borrar-confirma" etiqueta="Escribe BORRAR para confirmar" valor={texto} onCambio={setTexto} />
       <div className="acciones">
@@ -339,6 +477,6 @@ function ZonaPeligro() {
           Borrar todo
         </button>
       </div>
-    </section>
+    </div>
   )
 }
