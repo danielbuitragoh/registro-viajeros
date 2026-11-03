@@ -79,7 +79,12 @@ main:focus { outline: none; }
 }
 .nav a:hover { background: var(--info-fondo); color: var(--texto); }
 .nav a[aria-current='page'] { background: var(--primario); color: var(--sobre-primario); }
-.nav-principal { flex: 1 1 auto; }
+.nav-principal { order: 3; flex-basis: 100%; }
+/* Pantallas anchas: marca, menú y «Bloquear» en una sola fila */
+@media (min-width: 72rem) {
+  .cabecera-dentro { max-width: 76rem; flex-wrap: nowrap; }
+  .nav-principal { order: 0; flex-basis: auto; }
+}
 .selector-idioma { margin-left: auto; display: flex; align-items: center; gap: var(--e-2); }
 .selector-idioma label { font-weight: 600; margin: 0; }
 .selector-idioma select { width: auto; min-width: 9rem; }
@@ -280,9 +285,10 @@ tbody tr:last-child td { border-bottom: none; }
   html { font-size: 106.25%; }
   .cabecera-dentro { padding: var(--e-2) var(--e-3); }
   /* Navegación: una fila de 5 botones iguales, icono encima del texto */
-  .nav-principal { order: 3; flex-basis: 100%; }
   .nav { display: grid; grid-template-columns: repeat(5, 1fr); }
-  .nav a { flex-direction: column; gap: 0.1rem; padding: var(--e-1) 0; font-size: var(--fs-xs); min-height: 3.5rem; justify-content: center; }
+  .nav a { flex-direction: column; gap: 0.1rem; padding: var(--e-1) 0; font-size: var(--fs-xs); min-height: 3.5rem; justify-content: center; width: 100%; }
+  .marca-app { flex: 1 1 0; font-size: var(--fs-m); }
+  .cabecera .bloquear { padding: var(--e-1) var(--e-3); font-size: var(--fs-s); }
   .nav a .icono { width: 1.4rem; height: 1.4rem; }
   .acciones button { flex: 1 1 100%; }
   .tarjeta-reserva { grid-template-columns: 1fr; }
