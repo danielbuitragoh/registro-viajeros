@@ -5,7 +5,7 @@ Registro de viajeros **libre, sencillo y local-first** para alojamientos pequeñ
 > ## ⚠️ Aviso importante
 > **Esta es una herramienta no oficial.** No está afiliada ni respaldada por el Ministerio del Interior. **No envía nada al Ministerio**: genera y valida un fichero que **tú debes subir** al portal SES.Hospedajes. **El establecimiento sigue siendo el único responsable** de comunicar los datos dentro de plazo y de que sean correctos. Lee la sección [Qué está validado y qué no](#qué-está-validado-contra-el-documento-oficial-y-qué-no) antes de usarla en producción, y contrasta siempre el primer fichero con la plantilla real del portal.
 
-![Lista del día en recepción, con el estado de cada parte y el aviso de 24 h](docs/img/captura-lista-dia.png)
+![«Hoy» en recepción: atajos (nueva reserva, escanear el QR de un huésped, exportar), aviso de 24 h con enlace a cada reserva y una tarjeta por reserva con su estado y el siguiente paso](docs/img/captura-lista-dia.png)
 
 ## Qué problema resuelve y para quién
 
@@ -33,41 +33,72 @@ La ficha que descarga el huésped lleva cada dato con su etiqueta **en español 
 > La demo se despliega con GitHub Actions al fusionar en `main` (ver `.github/workflows/pages.yml`). Hace falta una única vez activar *Settings → Pages → Source: GitHub Actions* en el repositorio.
 
 <p>
-  <img src="docs/img/captura-huesped.png" alt="Formulario del huésped en el móvil, en francés, con el selector de idioma" width="240">
-  <img src="docs/img/captura-ficha-pdf.png" alt="Ficha del huésped en PDF: datos con etiquetas en español y francés y el QR del código cifrado" width="330">
+  <img src="docs/img/captura-asistente.png" alt="Asistente de primeros pasos en el móvil, paso 2 de 6: datos del establecimiento, con la ayuda «¿De dónde sale este código? ¿Y si aún no lo tengo?» abierta" width="250">
+  <img src="docs/img/captura-huesped.png" alt="Formulario del huésped en francés con la ayuda «Quel document choisir ?» abierta: los cuatro tipos de documento oficiales" width="250">
+  <img src="docs/img/captura-hoy-oscuro.png" alt="«Hoy» en el móvil en modo oscuro, con el escáner del QR del huésped abierto" width="250">
 </p>
 <p>
-  <img src="docs/img/captura-lector-qr.png" alt="Recepción: lector de QR con la cámara abierta" width="420">
-  <img src="docs/img/captura-exportar.png" alt="Exportación: fichero XML validado contra el documento oficial" width="380">
+  <img src="docs/img/captura-reserva.png" alt="Ficha de una reserva: migas de pan, estado, «Siguiente paso» destacado y viajeros" width="420">
+  <img src="docs/img/captura-ayuda.png" alt="Página Ayuda con buscador y la pregunta «Uso AM HOTEL u otro programa de gestión» abierta" width="380">
+</p>
+<p>
+  <img src="docs/img/captura-exportar.png" alt="Exportación: fichero XML validado contra el documento oficial" width="420">
+  <img src="docs/img/captura-ficha-pdf.png" alt="Ficha del huésped en PDF: datos con etiquetas en español y francés y el QR del código cifrado" width="300">
 </p>
 
-*Capturas reales de la demo (datos ficticios): formulario del huésped en francés · ficha en PDF generada en el móvil · lector de QR en recepción (en la captura, la cámara simulada de Chromium) · exportación validada.*
+*Capturas reales de la demo (datos ficticios), generadas con `node scripts/capturas.mjs`: asistente de primeros pasos · huésped en francés con la guía del documento · «Hoy» en modo oscuro con el escáner · ficha de reserva con el siguiente paso · Ayuda · exportación validada · ficha en PDF generada en el móvil.*
 
 ## Guía de 5 minutos para el dueño de un alojamiento
 
-Lo justo para empezar hoy. Necesitas un ordenador o una tablet en recepción con Chrome, Edge, Firefox o Safari actualizados.
+Lo justo para empezar hoy. Necesitas un ordenador o una tablet en recepción con Chrome, Edge, Firefox o Safari actualizados. **No hace falta leer nada más: al abrir la app por primera vez, un asistente de 6 pasos te guía** (con barra de progreso, *Atrás* y *Saltar*; se retoma en *Ajustes → Primeros pasos*):
 
-1. **Minuto 1. Abre la app** (la dirección que publiques o la [demo](https://danielbuitragoh.github.io/registro-viajeros/) para probar) y **crea la contraseña del establecimiento**. Usa una frase larga y guárdala en un sitio seguro: **no se puede recuperar**. Si quieres, **instálala** (icono de instalar en la barra de direcciones de Chrome/Edge, o «Añadir a pantalla de inicio» en el móvil): se abre como una app y **funciona sin conexión**.
-2. **Minuto 2. Ajustes → Establecimiento:** nombre, tipo y **código de establecimiento** (el que te dio SES.Hospedajes al registrarte). Pulsa *Guardar establecimiento*.
-3. **Minuto 3. Nueva reserva:** referencia, entrada, salida y nº de personas. Pulsa *Guardar reserva*.
-4. **Minuto 4. Crear enlace para el huésped** y envíaselo por WhatsApp o correo (o enséñale el QR en el mostrador). Elige su idioma: español, inglés, francés, alemán, italiano o portugués. El huésped rellena su ficha en el móvil y te enseña un **QR**.
-5. **Minuto 5. Escanear el QR con la cámara** (en la propia reserva): las fichas se importan solas. Si el parte sale *Completo*, ve a **Exportar → Validar y generar fichero → Descargar XML** y **súbelo tú al portal SES.Hospedajes**.
+1. **Contraseña del establecimiento**, y qué significa perderla: nadie puede recuperarla; la única salida es una copia de seguridad.
+2. **Datos del establecimiento**: nombre, tipo y **código de establecimiento** (te lo asigna SES.Hospedajes al registrarlo). ¿Aún no lo tienes? Déjalo en blanco y sigue: la app te explica qué puedes hacer sin él.
+3. **Una reserva de prueba** (marcada «Prueba», para practicar sin tocar datos reales).
+4. **Enviar el enlace a un huésped**: ábrelo en tu propio móvil para ver lo que verá el huésped (o añade un viajero de ejemplo ficticio).
+5. **Generar el primer fichero** (de prueba: la app te recuerda que no lo subas).
+6. **Copia de seguridad** y cada cuánto quieres que «Hoy» te la recuerde. Al terminar, la reserva de prueba se borra.
 
-Y una costumbre: **Ajustes → Copia de seguridad cifrada** una vez por semana, guardada fuera de ese equipo. Los datos solo viven en ese dispositivo.
+Después, el día a día está en **Hoy**: *Nueva reserva*, *Escanear el QR de un huésped* (la app reconoce sola de qué reserva es) y *Exportar los partes listos*. Cada reserva dice cuál es su **siguiente paso**. Y si dudas, **Ayuda** tiene las preguntas frecuentes (plazos, el portal rechaza el fichero, menores, huésped sin documento español, cambiar de ordenador, AM HOTEL u otros programas…).
 
-> ¿Tienes programa de gestión? Haz solo los pasos 1, 3 y 4 (como pre-check-in) y pasa los datos de la ficha a tu programa; no subas el XML si tu programa ya comunica los partes.
+Si quieres, **instálala** (icono de instalar en la barra de direcciones de Chrome/Edge, o «Añadir a pantalla de inicio» en el móvil): se abre como una app y **funciona sin conexión**.
+
+> ¿Tienes programa de gestión (AM HOTEL u otro)? Usa la app **solo como pre-check-in** (el huésped rellena su ficha y tú pasas los datos a tu programa) y **no subas también el XML** si tu programa ya comunica los partes: se comunicarían dos veces.
 
 ## Cómo usarlo, paso a paso (detalle)
 
 1. **Primer uso** (en el ordenador/tablet de recepción): abre la app, crea la **contraseña del establecimiento** y guárdala en un sitio seguro. No se puede recuperar.
-2. **Ajustes → Establecimiento:** nombre, tipo (Hostal…) y **código de establecimiento** (lo asigna el Sistema de Hospedajes al registrarte).
+2. **Ajustes → Establecimiento** (o el paso 2 del asistente): nombre, tipo (Hostal…) y **código de establecimiento** (lo asigna el Sistema de Hospedajes al registrarte; junto al campo, «¿De dónde sale este código? ¿Y si aún no lo tengo?»).
 3. **Nueva reserva:** referencia, fechas de entrada/salida previstas, nº de personas, habitación, canal y forma de pago.
-4. **Que el huésped rellene su ficha:** en la reserva pulsa *Crear enlace para el huésped* y envíale el enlace (o enséñale el QR). Desde su móvil, en **español, inglés, francés, alemán, italiano o portugués**, rellena una ficha por viajero y obtiene un **código cifrado** (QR, texto o archivo). En recepción pulsas *Escanear el QR con la cámara* (o lees el QR de una foto, o pegas el código) y las fichas se importan. Si el alojamiento lo pide, el huésped puede además **descargar su ficha en PDF o imprimirla** (pre-check-in). Si prefieres, rellénalas tú en recepción.
-5. **Revisa la reserva:** la sección *Revisión del parte* te dice, con mensajes claros, qué falta (p. ej. «la letra de control debería ser Z», o el código INE del municipio, que el huésped no suele conocer).
-6. **Lista del día (Hoy):** estado de cada parte (*pendiente / completo / exportado*) y **aviso de 24 h** (vencidos, y los que vencen en menos de 6 h).
+4. **Que el huésped rellene su ficha:** en la reserva pulsa *Crear enlace para el huésped* y envíale el enlace (o enséñale el QR). Desde su móvil, en **español, inglés, francés, alemán, italiano o portugués**, rellena una ficha por viajero y obtiene un **código cifrado** (QR, texto o archivo). En recepción pulsas *Escanear el QR de un huésped* en **Hoy** (reconoce sola la reserva) o *Escanear el QR con la cámara* en la propia reserva (o lees el QR de una foto, o pegas el código) y las fichas se importan. Si el alojamiento lo pide, el huésped puede además **descargar su ficha en PDF o imprimirla** (pre-check-in). Si prefieres, rellénalas tú en recepción.
+5. **Revisa la reserva:** arriba, el **siguiente paso**; la sección *Revisión del parte* te dice, con mensajes claros y un botón *Corregir*, qué falta (p. ej. «la letra de control debería ser Z», o el código INE del municipio, que el huésped no suele conocer).
+6. **Lista del día (Hoy):** una tarjeta por reserva con su estado (*pendiente / completo / exportado*), plazo y siguiente paso, y **aviso de 24 h** con enlace a cada reserva vencida o que vence en menos de 6 h.
 7. **Exportar:** elige el tipo de fichero (*partes de viajeros* o *reservas de hospedaje*), marca las reservas, pulsa *Validar y generar fichero*. Solo se puede descargar si supera la validación.
 8. **Súbelo tú al portal SES.Hospedajes.** Hasta que no lo subas, la comunicación **no está hecha**, aunque la app lo marque como «exportado».
-9. **Copias de seguridad:** *Ajustes → Copia de seguridad cifrada* (descarga un fichero cifrado). Hazla periódicamente: los datos viven solo en ese dispositivo.
+9. **Copias de seguridad:** *Ajustes → Copia de seguridad* (descarga un fichero cifrado). «Hoy» te avisa si no has hecho ninguna o si la última es más antigua que la frecuencia elegida (semanal por defecto): los datos viven solo en ese dispositivo.
+
+## Pensada para cualquiera: asistente, guía y diseño
+
+El análisis de los recorridos (primer uso, recepción, huésped, exportar, copias, purga), sus fricciones y el plan está en [`docs/ux.md`](docs/ux.md). En resumen:
+
+- **Asistente de primeros pasos** (6 pasos, progreso, *Atrás*, *Saltar* y retomar desde Ajustes) con una reserva de prueba.
+- **Navegación por frecuencia de uso:** Hoy → Reservas → Exportar → Ajustes → Ayuda, con **icono y texto**; **migas de pan** en reservas y en las subpáginas de Ajustes; atajos grandes en «Hoy».
+- **Guía contextual:** «¿Qué es…?» desplegable junto a cada campo difícil (tipo de documento, número de soporte con **ilustración esquemática**, código INE con un ejemplo de la muestra ficticia, código de establecimiento, segundo apellido, teléfono extranjero, menores, 24 h, forma de pago); **estados vacíos** que dicen qué hacer; página **Ayuda** con 14 preguntas frecuentes y buscador; preguntas frecuentes también para el huésped.
+- **Sistema de diseño** único para la app y la presentación (`src/diseno/tokens.css`: color, tipografía, espaciado, forma y tamaño táctil), **modo oscuro** (automático o elegido en *Ajustes → Apariencia*), contraste AA comprobado numéricamente en los dos temas y con axe en navegador real, objetivos táctiles de 48–56 px, estados con icono y texto.
+- **Idiomas:** la recepción está en español; todo lo que ve el **huésped** (formulario, guía de cada campo, tipos de documento y preguntas frecuentes) está en los 6 idiomas. **Las traducciones al francés, alemán, italiano y portugués necesitan revisión de una persona nativa**, también los 44 textos nuevos de la guía y la ayuda de esta versión.
+
+## Tipos de documento admitidos (y por qué)
+
+Exactamente los de la **tabla 8.5 «Tipos de documento»** de [`docs/oficial/Instrucciones.pdf`](docs/oficial/Instrucciones.pdf), ni uno más (transcritos en `src/oficial/codigos.ts` y con sus reglas en `src/oficial/documentos.ts`):
+
+| Código | Tabla 8.5 | Validación | Reglas del §3 (partes de viajeros) |
+|---|---|---|---|
+| `NIF` | NIF - Número de Identificación Fiscal | DNI: 8 cifras + **letra de control** (tabla completa de los 23 restos). K, L, M: formato, sin control (aviso) | Segundo apellido y número de soporte obligatorios |
+| `NIE` | NIE - Número de Identidad de Extranjero | X/Y/Z + 7 cifras + **letra de control** | Número de soporte obligatorio |
+| `PAS` | Número de pasaporte | 5–15 letras o cifras; patrón habitual por país **solo como aviso** (P10) | — |
+| `OTRO` | Otro | Hasta 15 caracteres (String(15)) | — |
+
+Además, el §3 dice que el número «deberá corresponder al tipo de documento»: si con *pasaporte* u *otro* se escribe un DNI o NIE con su letra correcta, la app **avisa** (no bloquea) para que se elija el tipo bueno. El documento (tipo y número) es obligatorio para mayores de edad (§3). **No hay código propio para el carné de identidad de otro país** (p. ej. de la UE), permisos de residencia ni carnés de conducir: la guía del huésped propone **OTRO**, el único genérico de la tabla, y queda como pendiente **P16**. Cada tipo tiene su ayuda para el huésped, en los 6 idiomas, con un ejemplo ficticio y válido (`12345678Z`, `X1234567L`) donde el documento fija el formato.
 
 ## Códigos de municipio INE (autocompletado sin red)
 
@@ -139,14 +170,18 @@ Fuente única de verdad: [`docs/oficial/Instrucciones.pdf`](docs/oficial/Instruc
 | P10 | Formato exacto del soporte y de pasaportes por país | Soporte alfanumérico ≤ 9. Pasaporte por país **orientativo** (aviso, nunca bloquea) |
 | P12 | Cómputo de las 24 h y de los 3 años (viene del RD, no del PDF) | 24 h desde la entrada prevista; 3 años desde la salida. Confirmar con asesoría |
 | P14 | Subida al portal y errores que devuelve el sistema | Fuera de alcance: la subida es manual |
+| P16 | La tabla 8.5 solo tiene NIF, NIE, PAS y OTRO: no hay código para el carné de identidad de otro país (UE…), permisos de residencia o carnés de conducir | Se usa **OTRO** (el único genérico). Confirmar con el portal |
+| P17 | El §3 y el §4 remiten a «la tabla … en el apartado 6», pero las tablas están en el **apartado 8** | Errata: se usan las del apartado 8 |
 | P15 | El PDF dice «código INE, 5 dígitos» pero no si incluye el dígito de control del INE | Usa CPRO (2) + CMUN (3), sin el dígito de control. Confirmar con el portal |
 
 Además: el «canal de reserva» y la habitación son datos internos y no se exportan; los NIF que empiezan por K, L o M se aceptan por formato sin verificar el control; **no se ha podido probar el fichero contra el portal real**.
 
 ## Limitaciones conocidas de esta versión
 
-- **Traducciones** (francés, alemán, italiano, portugués): hechas con ayuda de IA y comprobadas por pruebas (claves y marcadores completos), pero **necesitan revisión de una persona nativa de cada idioma**. En noviembre de 2026 se repasaron buscando solo errores claros y se corrigieron 5 (con prueba de regresión): FR, al pie del PDF le faltaba el verbo («n’a été envoyée»); DE, «Ausweisträger» (titular) en vez del número del propio documento, un verbo separable incompleto y una frase sin sujeto; PT, «a receção completa» → «a receção preenche-o». El italiano no tenía errores claros. Lo que solo es mejorable por estilo se ha dejado como estaba.
+- **Traducciones** (francés, alemán, italiano, portugués): hechas con ayuda de IA y comprobadas por pruebas (claves y marcadores completos), pero **necesitan revisión de una persona nativa de cada idioma**, incluidos los textos nuevos de la guía del huésped y sus preguntas frecuentes (noviembre de 2026). En noviembre de 2026 se repasaron buscando solo errores claros y se corrigieron 5 (con prueba de regresión): FR, al pie del PDF le faltaba el verbo («n’a été envoyée»); DE, «Ausweisträger» (titular) en vez del número del propio documento, un verbo separable incompleto y una frase sin sujeto; PT, «a receção completa» → «a receção preenche-o». El italiano no tenía errores claros. Lo que solo es mejorable por estilo se ha dejado como estaba.
 - **Lector de QR:** la lectura real con cámara está probada en Chromium (alternativa jsQR). La vía `BarcodeDetector` (Android, macOS) solo está probada con simulaciones; conviene probarla en un móvil Android real.
+- **Ayudas orientativas:** dónde suele estar el número de soporte («NÚM SOPORT», «IDESP») no sale del documento oficial (P10): se presenta como orientación, con una ilustración esquemática que no reproduce ningún documento real.
+- **El selector de fichero** («Leer el QR de una foto») muestra el texto del propio navegador (en un navegador en inglés, «Choose File»).
 - **PDF del huésped:** solo alfabeto latino (WinAnsi). Con otros alfabetos la app avisa y ofrece imprimir.
 - **`npm audit`:** quedan avisos moderados y bajos en herramientas de desarrollo (ESLint, typescript-eslint, vite-plugin-pwa), no en el código que llega al navegador; npm solo propone bajar a versiones antiguas, así que se vigilan hasta que haya versiones corregidas.
 
@@ -171,12 +206,13 @@ npm run typecheck  # tsc estricto
 npm run build      # build de producción (PWA)
 npm run ine:importar -- docs/oficial/ine/<fichero del INE>   # relación de municipios → src/oficial/ine/
 node scripts/generar-iconos.ts   # regenera los iconos PNG de la PWA desde el diseño del SVG
+node scripts/capturas.mjs http://localhost:4173   # capturas del README y de la presentación (con la demo en vite preview)
 VITE_DEMO=true npm run build   # build de la demo con datos ficticios
 ```
 
-Estructura: `src/oficial` (tablas del PDF; `src/oficial/ine`, relaciones de municipios generadas) · `src/ine` (búsqueda y estado de códigos INE) · `scripts/` (importador del INE) · `src/validators` · `src/exportador` (módulo aislado) · `src/crypto` · `src/storage` (IndexedDB cifrado, purga, copias) · `src/huesped` (enlace, código de envío, ficha imprimible y PDF) · `src/qr` (lector) · `src/i18n` (un fichero por idioma) · `src/ui` · `e2e` (Playwright) · `docs/oficial`.
+Estructura: `src/diseno` (tokens del sistema de diseño y tema claro/oscuro) · `src/oficial` (tablas del PDF y reglas de los tipos de documento; `src/oficial/ine`, relaciones de municipios generadas) · `src/ine` (búsqueda y estado de códigos INE) · `scripts/` (importador del INE) · `src/validators` · `src/exportador` (módulo aislado) · `src/crypto` · `src/storage` (IndexedDB cifrado, purga, copias) · `src/huesped` (enlace, código de envío, ficha imprimible y PDF) · `src/qr` (lector) · `src/i18n` (un fichero por idioma) · `src/ui` · `e2e` (Playwright) · `docs/oficial`.
 
-**Pruebas end-to-end** (`e2e/`, sobre el build de producción con su CSP): (1) flujo completo: crear reserva → elegir el municipio en el autocompletado → enlace → ficha en un móvil emulado (en francés) y descarga del PDF → **recepción lee el QR con la cámara** (Chromium con una cámara falsa que muestra el QR) → parte completo → exportar → XML comprobado con `DOMParser`; (2) la demo en móvil: la lista no se mueve y cada «Abrir» abre su reserva; (3) recorrido por todas las pantallas y los 6 idiomas; (4) **PWA**: Chrome no encuentra ningún error de instalación; con un build como el de GitHub Pages (base `/registro-viajeros/`), la presentación se sirve con su HTML y nunca la app (con parámetros, sin barra final, con y sin red, y tras relevar a un SW antiguo); la app funciona **con la red cortada** tras la primera carga (recepción, municipios, exportación, enlace del huésped y presentación) y, tras **desplegar una versión nueva** en un servidor de prueba, aparece el aviso y «Actualizar ahora» la activa; (5) **presentación**: axe en navegador real (con contraste) en escritorio y móvil, sin JavaScript, menos de 40 kB sin contar imágenes, y selector de idioma. Una **guardia automática** hace fallar cualquier prueba si la página intenta una petición a otro origen o el navegador informa de una violación de la CSP, y una prueba de control demuestra que la guardia sí lo detecta.
+**Pruebas end-to-end** (`e2e/`, sobre el build de producción con su CSP): (1) flujo completo: crear reserva → elegir el municipio en el autocompletado → enlace → ficha en un móvil emulado (en francés) y descarga del PDF → **recepción lee el QR con la cámara** (Chromium con una cámara falsa que muestra el QR) → parte completo → exportar → XML comprobado con `DOMParser`; (2) la demo en móvil: la lista no se mueve y cada «Abrir» abre su reserva; (3) recorrido por todas las pantallas y los 6 idiomas; (4) **PWA**: Chrome no encuentra ningún error de instalación; con un build como el de GitHub Pages (base `/registro-viajeros/`), la presentación se sirve con su HTML y nunca la app (con parámetros, sin barra final, con y sin red, y tras relevar a un SW antiguo); la app funciona **con la red cortada** tras la primera carga (recepción, municipios, exportación, enlace del huésped y presentación) y, tras **desplegar una versión nueva** en un servidor de prueba, aparece el aviso y «Actualizar ahora» la activa; (5) **presentación**: axe en navegador real (con contraste) en escritorio y móvil, sin JavaScript, menos de 40 kB sin contar imágenes, y selector de idioma; (6) **asistente completo** (contraseña → establecimiento → reserva de prueba → ficha rellenada en un móvil desde el enlace → fichero de prueba → copia → Hoy, y saltar/retomar; la pista se abre con Enter y se cierra con Espacio); (7) **huésped con documento no español** (alemana con su *Personalausweis*, en alemán: «Anderes Dokument» → OTRO, sin soporte, aviso si teclea un DNI, importación desde el atajo de Hoy y XML con `tipoDocumento` OTRO); (8) **axe con contraste en todas las pantallas** (acceso, Hoy, escáner, reserva, nueva reserva con errores, exportar, cada subpágina de Ajustes, Ayuda, primeros pasos, huésped y presentación) en **tema claro y oscuro**, en escritorio y en móvil, sin desplazamiento horizontal, y el tema elegido a mano se recuerda. Una **guardia automática** hace fallar cualquier prueba si la página intenta una petición a otro origen o el navegador informa de una violación de la CSP, y una prueba de control demuestra que la guardia sí lo detecta.
 
 ## Cómo se construyó
 
@@ -190,7 +226,7 @@ Construido con **Claude Code** (agente de IA de Anthropic) bajo la dirección de
 
 ## English summary
 
-**Registro de viajeros** is a free, local-first PWA for small Spanish accommodations (hostels, guest houses) that must report every guest to the Ministry of the Interior (SES.Hospedajes, Royal Decree 933/2021) within 24 hours and keep the data for 3 years. It needs **no server**: guests fill in their details on their phone (form in Spanish, English, French, German, Italian and Portuguese, WCAG 2.2 AA-oriented), producing an **encrypted code** (QR/text/file) that reception imports by **scanning the QR with the camera** (native BarcodeDetector or bundled jsQR, no network); guests can also download a readable, bilingual **PDF/printout** of their details as a pre-check-in for places that already use a property-management system; reception sees a daily list with each report's status and a 24-hour warning; and an isolated **exporter** generates the bulk-upload XML defined in the official document (`docs/oficial/Instrucciones.pdf`, v1.1.0) and validates it twice before it can be downloaded. End-to-end tests (Playwright) cover the whole flow and fail if the page makes any request to another origin. It is an installable PWA that keeps working offline after the first load and shows a "new version available" prompt instead of reloading by surprise. Reception gets an offline municipality → INE code autocomplete, fed **only** by the official INE file once it is added to `docs/oficial/ine/` (an import script and a guard test make sure no code comes from anywhere else; until then the demo uses a clearly fictitious sample). A static, JavaScript-free presentation page for owners lives at `/presentacion/` (Spanish) and `/presentacion/en/` (English). Data lives in IndexedDB, encrypted with AES-GCM using a PBKDF2-derived key; records are auto-purged 3 years after check-out (with prior warning); encrypted backups are supported. No analytics, no external calls.
+**Registro de viajeros** is a free, local-first PWA for small Spanish accommodations (hostels, guest houses) that must report every guest to the Ministry of the Interior (SES.Hospedajes, Royal Decree 933/2021) within 24 hours and keep the data for 3 years. It needs **no server**: guests fill in their details on their phone (form in Spanish, English, French, German, Italian and Portuguese, WCAG 2.2 AA-oriented), producing an **encrypted code** (QR/text/file) that reception imports by **scanning the QR with the camera** (native BarcodeDetector or bundled jsQR, no network); guests can also download a readable, bilingual **PDF/printout** of their details as a pre-check-in for places that already use a property-management system; reception sees a daily list with each report's status and a 24-hour warning; and an isolated **exporter** generates the bulk-upload XML defined in the official document (`docs/oficial/Instrucciones.pdf`, v1.1.0) and validates it twice before it can be downloaded. End-to-end tests (Playwright) cover the whole flow and fail if the page makes any request to another origin. A first-use wizard (6 steps with a test booking: password, establishment, test booking, guest link, first file, backup) guides non-technical owners; navigation follows frequency of use (Today → Bookings → Export → Settings → Help) with icons and text and breadcrumbs; every tricky field has a “What is…?” hint (guest-facing hints in 6 languages), empty states say what to do next, and a Help page answers common questions. One design system (tokens) is shared by the app and the presentation page, with dark mode and AA contrast checked in both themes. Accepted identity document types are exactly those in table 8.5 of the official document (NIF, NIE, PAS, OTRO). It is an installable PWA that keeps working offline after the first load and shows a "new version available" prompt instead of reloading by surprise. Reception gets an offline municipality → INE code autocomplete, fed **only** by the official INE file once it is added to `docs/oficial/ine/` (an import script and a guard test make sure no code comes from anywhere else; until then the demo uses a clearly fictitious sample). A static, JavaScript-free presentation page for owners lives at `/presentacion/` (Spanish) and `/presentacion/en/` (English). Data lives in IndexedDB, encrypted with AES-GCM using a PBKDF2-derived key; records are auto-purged 3 years after check-out (with prior warning); encrypted backups are supported. No analytics, no external calls.
 
 **This is NOT an official tool and does NOT submit anything to the Ministry.** You must upload the file yourself, and the establishment remains solely responsible for reporting on time. Items the official document does not specify (XML namespace, `internet` field format, INE municipality table, "arrendador" code, etc.) are **not invented**: they are marked `PENDIENTE-OFICIAL` in code and listed above. The file has not been tested against the live portal.
 
