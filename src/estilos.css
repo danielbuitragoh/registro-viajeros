@@ -85,6 +85,9 @@ main:focus { outline: none; }
 .nav a:hover { background: var(--info-fondo); }
 .nav a[aria-current='page'] { background: var(--primario); color: var(--sobre-primario); }
 .cabecera > button { margin-left: auto; }
+.selector-idioma { margin-left: auto; display: flex; align-items: center; gap: 0.5rem; }
+.selector-idioma label { font-weight: 600; }
+.selector-idioma select { width: auto; min-width: 9rem; }
 
 main { max-width: 62rem; margin: 0 auto; padding: 0.5rem 1rem 3rem; }
 .pagina-huesped { max-width: 40rem; }
@@ -167,7 +170,8 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
 /* Tablas */
 .barra-herramientas { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.75rem; margin: 1rem 0; }
 .resumen-dia { font-weight: 600; }
-.tabla-scroll { overflow-x: auto; border: 1px solid var(--borde-suave); border-radius: var(--radio); }
+/* position: relative → los textos .solo-lectores (absolutos) quedan dentro del scroll y no ensanchan la página en el móvil */
+.tabla-scroll { position: relative; overflow-x: auto; border: 1px solid var(--borde-suave); border-radius: var(--radio); }
 table { width: 100%; border-collapse: collapse; min-width: 44rem; }
 th, td { text-align: left; padding: 0.6rem 0.75rem; border-bottom: 1px solid var(--borde-suave); vertical-align: middle; }
 th { background: var(--fondo-suave); font-size: 0.95rem; }
@@ -179,6 +183,7 @@ tbody tr:last-child td { border-bottom: none; }
 
 .qr { max-width: 16rem; margin: 1rem 0; background: #fff; padding: 0.25rem; border: 1px solid var(--borde-suave); }
 .qr svg { display: block; width: 100%; height: auto; }
+.lector-qr-camara video { display: block; width: 100%; max-width: 28rem; aspect-ratio: 4 / 3; background: #000; border-radius: var(--radio); object-fit: cover; }
 .estado-copia { min-height: 1.5rem; color: var(--ok); font-weight: 600; }
 details summary { cursor: pointer; min-height: 48px; display: flex; align-items: center; font-weight: 600; }
 
@@ -194,4 +199,20 @@ details summary { cursor: pointer; min-height: 48px; display: flex; align-items:
 
 @media (forced-colors: active) {
   .chip, .tarjeta, fieldset { border: 2px solid CanvasText; }
+}
+
+/* Ficha del huésped para imprimir: oculta en pantalla; al imprimir, solo sale ella */
+.hoja-impresion { display: none; }
+@media print {
+  .cabecera, .saltar, .no-imprimir, .banner-demo { display: none !important; }
+  main { max-width: none; padding: 0; }
+  .hoja-impresion { display: block; color: #000; font-size: 11pt; }
+  .hoja-impresion h1 { font-size: 16pt; margin: 0 0 0.5rem; }
+  .hoja-impresion h2 { font-size: 13pt; margin: 1rem 0 0.25rem; border-bottom: 1.5pt solid #000; break-after: avoid; }
+  .hoja-impresion table { width: 100%; border-collapse: collapse; }
+  .hoja-impresion th, .hoja-impresion td { text-align: left; vertical-align: top; padding: 3pt 4pt; border-bottom: 0.5pt solid #bbb; }
+  .hoja-impresion th { width: 38%; font-size: 9.5pt; }
+  .hoja-impresion section { break-inside: avoid; }
+  .hoja-qr .qr { max-width: 7cm; border: 0; }
+  .hoja-pie { font-size: 8pt; color: #444; margin-top: 1rem; }
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useApp } from '../app/AppContext'
 import { useRuta } from '../app/ruta'
 import type { Establecimiento, Reserva } from '../domain/tipos'
@@ -29,6 +29,18 @@ export function Recepcion() {
   const ahora = app.ahora()
   const [fecha, setFecha] = useState(() => hoyISO(ahora))
   const [filtro, setFiltro] = useState('')
+
+  // Al cambiar de pantalla: arriba del todo y foco en el contenido (WCAG 2.4.3). Sin esto, en el móvil la reserva
+  // abierta desde una fila de abajo se mostraba con el desplazamiento de la lista y su título quedaba fuera de la vista.
+  const primeraRuta = useRef(true)
+  useEffect(() => {
+    if (primeraRuta.current) {
+      primeraRuta.current = false
+      return
+    }
+    window.scrollTo(0, 0)
+    document.getElementById('contenido')?.focus({ preventScroll: true })
+  }, [ruta])
 
   const activa = (r: string) => (r === '/' ? ruta === '/' : ruta.startsWith(r))
   const partes = ruta.split('/').filter(Boolean)

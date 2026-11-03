@@ -6,7 +6,9 @@
 import { a64url, de64url } from '../crypto/cifrado'
 import type { Establecimiento, Reserva } from '../domain/tipos'
 
-export type Idioma = 'es' | 'en'
+import { esIdioma, type Idioma } from '../i18n/textos'
+
+export type { Idioma }
 
 export interface DatosEnlace {
   v: 1
@@ -60,7 +62,7 @@ export function decodificarEnlace(entrada: string): DatosEnlace | null {
       (obj.n as number) < 1 ||
       typeof obj.k !== 'string' ||
       !/^[A-Za-z0-9_-]{43}$/.test(obj.k) ||
-      (obj.l !== 'es' && obj.l !== 'en')
+      !esIdioma(obj.l)
     ) {
       return null
     }

@@ -36,6 +36,17 @@ describe('enlace de huésped (sin datos personales)', () => {
     for (const s of ['Lucía', '12345678Z', 'lucia@example.com']) expect(bruto).not.toContain(s)
   })
 
+  it.each(['es', 'en', 'fr', 'de', 'it', 'pt'] as const)('admite el idioma inicial %s', (l) => {
+    const datos = crearDatosEnlace(establecimiento(), r, clave, l)
+    expect(decodificarEnlace(codificarEnlace(datos, 'https://x.test/'))?.l).toBe(l)
+  })
+
+  it('rechaza un idioma que el formulario no tiene', () => {
+    const datos = { ...crearDatosEnlace(establecimiento(), r, clave, 'es'), l: 'xx' }
+    const frag = '#/huesped/' + btoa(JSON.stringify(datos)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+    expect(decodificarEnlace(frag)).toBeNull()
+  })
+
   it('el fragmento es URL-safe', () => {
     const url = codificarEnlace(crearDatosEnlace(establecimiento(), r, clave, 'es'), 'https://x.test/')
     expect(url.slice(url.indexOf('#') + 1)).toMatch(/^\/huesped\/[A-Za-z0-9_-]+$/)

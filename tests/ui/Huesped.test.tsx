@@ -1,6 +1,6 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { axeSinContraste as axe, TIMEOUT_AXE } from '../axe'
 import { Huesped } from '../../src/ui/Huesped'
 import { crearDatosEnlace, generarClaveEnlace } from '../../src/huesped/enlace'
@@ -13,7 +13,7 @@ const datos = crearDatosEnlace(establecimiento(), reserva({ id: 'res-test', numP
 beforeEach(() => sessionStorage.clear())
 
 async function anadirAdulto(user: ReturnType<typeof userEvent.setup>, nombre = 'Lucía') {
-  await user.click(screen.getByRole('button', { name: 'Añadir otro viajero' }))
+  await user.click(screen.getByRole('button', { name: /^Añadir (otro )?viajero$/ }))
   await user.type(screen.getByLabelText('Nombre'), nombre)
   await user.type(screen.getByLabelText('Primer apellido'), 'Prueba')
   await user.type(screen.getByLabelText(/^Segundo apellido/), 'Ejemplo')
@@ -67,14 +67,79 @@ describe('Modo huésped — flujo completo', () => {
     expect(screen.getByText('Todavía no has añadido ningún viajero.')).toBeInTheDocument()
   })
 
-  it('cambia de idioma: textos y atributo lang del documento', async () => {
+  it('el botón dice «Añadir viajero» con la lista vacía y «Añadir otro viajero» cuando ya hay alguno', async () => {
     const user = userEvent.setup()
     render(<Huesped datos={datos} />)
-    await user.click(screen.getByRole('button', { name: 'Switch to English' }))
+    await user.click(screen.getByRole('button', { name: 'Empezar' }))
+    expect(screen.getByRole('button', { name: 'Añadir viajero' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Añadir otro viajero' })).not.toBeInTheDocument()
+    await anadirAdulto(user)
+    expect(await screen.findByRole('button', { name: 'Añadir otro viajero' })).toBeInTheDocument()
+  })
+
+  it('cambia de idioma con el selector: textos, atributo lang del documento y cada opción marcada con su idioma', async () => {
+    const user = userEvent.setup()
+    render(<Huesped datos={datos} />)
+    const selector = screen.getByRole('combobox', { name: /Idioma/ })
+    // cada opción se nombra en su lengua y lleva su lang (WCAG 3.1.2)
+    expect(within(selector).getByRole('option', { name: 'Deutsch' })).toHaveAttribute('lang', 'de')
+    await user.selectOptions(selector, 'en')
     expect(screen.getByRole('heading', { name: 'Traveller details' })).toBeInTheDocument()
     expect(document.documentElement.lang).toBe('en')
-    // el propio botón de cambio de idioma está marcado con el idioma de destino (WCAG 3.1.2)
-    expect(screen.getByRole('button', { name: 'Cambiar a español' })).toHaveAttribute('lang', 'es')
+    for (const [l, titulo] of [
+      ['fr', 'Données des voyageurs'],
+      ['de', 'Angaben der Reisenden'],
+      ['it', 'Dati dei viaggiatori'],
+      ['pt', 'Dados dos viajantes'],
+    ] as const) {
+      await user.selectOptions(screen.getByRole('combobox', { name: /Language|Langue|Sprache|Lingua|Idioma/ }), l)
+      expect(screen.getByRole('heading', { level: 1, name: titulo })).toBeInTheDocument()
+      expect(document.documentElement.lang).toBe(l)
+    }
+  })
+
+  it('formulario completo en alemán: etiquetas y opciones oficiales traducidas', async () => {
+    const user = userEvent.setup()
+    render(<Huesped datos={{ ...datos, l: 'de' }} />)
+    await user.click(screen.getByRole('button', { name: 'Starten' }))
+    await user.click(screen.getByRole('button', { name: 'Person hinzufügen' }))
+    expect(screen.getByLabelText('Vorname')).toBeInTheDocument()
+    expect(within(screen.getByLabelText(/Ausweisart/)).getByRole('option', { name: 'Reisepass' })).toHaveAttribute('value', 'PAS')
+    expect(within(screen.getAllByLabelText(/Staatsangehörigkeit/)[0] as HTMLElement).getByRole('option', { name: 'Deutschland' })).toHaveAttribute('value', 'DEU')
+  })
+
+  it('pre-check-in: la ficha se puede descargar en PDF o imprimir (legible, bilingüe, sin servidor)', async () => {
+    const user = userEvent.setup()
+    const crearUrl = vi.fn((_: Blob) => 'blob:ficha')
+    URL.createObjectURL = crearUrl
+    URL.revokeObjectURL = vi.fn()
+    const imprimir = vi.spyOn(window, 'print').mockImplementation(() => undefined)
+    const clicEnlace = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => undefined)
+    render(<Huesped datos={datos} />)
+    await user.click(screen.getByRole('button', { name: 'Empezar' }))
+    await anadirAdulto(user)
+    await user.click(screen.getByRole('button', { name: 'Terminar y obtener el código' }))
+    await screen.findByLabelText('Código de envío')
+
+    await user.click(screen.getByRole('button', { name: 'Descargar ficha en PDF' }))
+    const blob = crearUrl.mock.calls.at(-1)?.[0] as Blob
+    expect(blob.type).toBe('application/pdf')
+    const cabecera = await new Promise<string>((ok) => {
+      const fr = new FileReader()
+      fr.onload = () => ok(String(fr.result).slice(0, 8))
+      fr.readAsText(blob.slice(0, 8))
+    })
+    expect(cabecera).toBe('%PDF-1.4')
+    expect(clicEnlace).toHaveBeenCalled()
+
+    await user.click(screen.getByRole('button', { name: 'Imprimir ficha' }))
+    expect(imprimir).toHaveBeenCalled()
+    // vista de impresión presente (oculta en pantalla), con los datos legibles
+    const hoja = document.querySelector('.hoja-impresion') as HTMLElement
+    expect(hoja).toHaveTextContent('Lucía')
+    expect(hoja).toHaveTextContent('12345678Z')
+    expect(screen.getByText(/la ficha NO está cifrada/)).toBeInTheDocument()
+    vi.restoreAllMocks()
   })
 
   it('se puede terminar con menos viajeros de los de la reserva (recepción lo revisará)', async () => {
@@ -91,7 +156,7 @@ describe('Modo huésped — flujo completo', () => {
     const { container } = render(<Huesped datos={datos} />)
     expect(await axe(container)).toHaveNoViolations()
     await user.click(screen.getByRole('button', { name: 'Empezar' }))
-    await user.click(screen.getByRole('button', { name: 'Añadir otro viajero' }))
+    await user.click(screen.getByRole('button', { name: 'Añadir viajero' }))
     expect(await axe(container)).toHaveNoViolations()
   })
 })

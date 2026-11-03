@@ -42,7 +42,7 @@ export function esPaisAlfa3(valor: unknown): boolean {
 }
 
 /** Nombre del país en el idioma pedido (Intl.DisplayNames); si el navegador no lo conoce, el propio código. */
-export function nombrePais(alfa3: string, idioma: 'es' | 'en'): string {
+export function nombrePais(alfa3: string, idioma: string): string {
   const p = PAISES.find((x) => x.alfa3 === alfa3)
   if (!p) return alfa3
   try {
@@ -53,7 +53,7 @@ export function nombrePais(alfa3: string, idioma: 'es' | 'en'): string {
 }
 
 /** Países ordenados por nombre en el idioma dado (para los desplegables). */
-export function paisesOrdenados(idioma: 'es' | 'en'): { alfa3: string; nombre: string }[] {
+export function paisesOrdenados(idioma: string): { alfa3: string; nombre: string }[] {
   return PAISES.map((p) => ({ alfa3: p.alfa3, nombre: nombrePais(p.alfa3, idioma) })).sort((a, b) =>
     a.nombre.localeCompare(b.nombre, idioma),
   )

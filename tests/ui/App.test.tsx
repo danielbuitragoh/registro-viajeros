@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { AppProvider } from '../../src/app/AppContext'
 import { Puerta } from '../../src/App'
 
@@ -66,5 +66,28 @@ describe('Aplicación con almacén cifrado real (IndexedDB en memoria)', () => {
     await user.type(await screen.findByLabelText('Contraseña'), 'clave-del-hostal')
     await user.click(screen.getByRole('button', { name: 'Desbloquear' }))
     await waitFor(() => expect(screen.getAllByText(/RES-UI-1/).length).toBeGreaterThan(0))
+  })
+
+  it('al cambiar de pantalla vuelve arriba y lleva el foco al contenido (en el móvil se ve el título de la reserva abierta)', async () => {
+    const user = userEvent.setup()
+    const scrollTo = vi.spyOn(window, 'scrollTo').mockImplementation(() => undefined)
+    montar()
+    await user.type(await screen.findByLabelText('Contraseña'), 'clave-del-hostal')
+    await user.type(screen.getByLabelText('Repite la contraseña'), 'clave-del-hostal')
+    await user.click(screen.getByLabelText(/no se pueden recuperar/))
+    await user.click(screen.getByRole('button', { name: 'Crear y entrar' }))
+    await screen.findByRole('heading', { name: 'Lista del día' })
+    scrollTo.mockClear()
+
+    await user.click(screen.getByRole('button', { name: 'Nueva reserva' }))
+    await screen.findByRole('heading', { name: 'Nueva reserva' })
+    await waitFor(() => expect(scrollTo).toHaveBeenCalledWith(0, 0))
+    expect(document.activeElement).toBe(document.getElementById('contenido'))
+
+    scrollTo.mockClear()
+    await user.click(screen.getByRole('button', { name: 'Cancelar' }))
+    await screen.findByRole('heading', { name: 'Lista del día' })
+    await waitFor(() => expect(scrollTo).toHaveBeenCalledWith(0, 0))
+    scrollTo.mockRestore()
   })
 })

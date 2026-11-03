@@ -21,10 +21,14 @@ const nombrePrincipal = (r: Reserva) => {
   return v ? `${v.nombre} ${v.apellido1}`.trim() : '— sin fichas —'
 }
 
+/** Orden total y estable (hora de entrada, referencia, id): no depende del orden en que llegan los datos. */
+export const compararReservas = (a: Reserva, b: Reserva) =>
+  a.entrada.localeCompare(b.entrada) || a.referencia.localeCompare(b.referencia, 'es') || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)
+
 export function ListaDia({ reservas, fecha, ahora, onFecha, onAbrir, onNueva }: ListaDiaProps) {
   const filas = useMemo(
     () =>
-      reservas.map((r) => ({ r, estado: estadoParte(r), plazo: plazo24h(r.entrada, ahora) })).sort((a, b) => a.r.entrada.localeCompare(b.r.entrada)),
+      reservas.map((r) => ({ r, estado: estadoParte(r), plazo: plazo24h(r.entrada, ahora) })).sort((a, b) => compararReservas(a.r, b.r)),
     [reservas, ahora],
   )
   const delDia = filas.filter((f) => soloFecha(f.r.entrada) === fecha)
