@@ -58,6 +58,12 @@ test('sin conexión tras la primera carga: recepción, autocompletado de municip
   await huesped.getByRole('button', { name: 'Empezar' }).click()
   await huesped.getByRole('button', { name: 'Añadir viajero' }).click()
   await expect(huesped.getByRole('combobox', { name: /^Nombre del municipio/ })).toBeVisible()
+
+  // La página de presentación también está en el dispositivo
+  await page.goto('/presentacion/')
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+  await page.goto('/presentacion/en/')
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en')
 })
 
 test('aviso de nueva versión: al desplegar otra versión aparece el aviso y «Actualizar ahora» la activa', async ({ browser }) => {
