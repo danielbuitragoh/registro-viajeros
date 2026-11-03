@@ -20,7 +20,8 @@ main:focus { outline: none; }
 
 .cabecera, main, .pie { max-width: 46rem; margin: 0 auto; padding-left: 16px; padding-right: 16px; }
 .cabecera { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem 1rem; padding-top: 0.75rem; padding-bottom: 0.75rem; }
-.marca { margin: 0; font-weight: 700; }
+.marca { margin: 0; font-weight: 700; display: flex; align-items: center; gap: var(--e-2); }
+.marca .logo { width: 2rem; height: 2rem; flex: none; }
 .cabecera ul { display: flex; gap: 0.25rem; list-style: none; margin: 0; padding: 0; }
 .cabecera nav a {
   display: inline-flex; align-items: center; min-height: 48px; padding: 0 0.75rem; border-radius: var(--radio);
