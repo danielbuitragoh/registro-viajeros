@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { axeSinContraste as axe, TIMEOUT_AXE } from '../axe'
 import { Huesped } from '../../src/ui/Huesped'
 import { crearDatosEnlace, generarClaveEnlace } from '../../src/huesped/enlace'
@@ -106,6 +106,36 @@ describe('Modo huésped — flujo completo', () => {
     expect(screen.getByLabelText('Vorname')).toBeInTheDocument()
     expect(within(screen.getByLabelText(/Ausweisart/)).getByRole('option', { name: 'Reisepass' })).toHaveAttribute('value', 'PAS')
     expect(within(screen.getAllByLabelText(/Staatsangehörigkeit/)[0] as HTMLElement).getByRole('option', { name: 'Deutschland' })).toHaveAttribute('value', 'DEU')
+  })
+
+  it('pre-check-in: la ficha se puede descargar en PDF o imprimir (legible, bilingüe, sin servidor)', async () => {
+    const user = userEvent.setup()
+    const crearUrl = vi.fn((_: Blob) => 'blob:ficha')
+    vi.stubGlobal('URL', Object.assign(URL, { createObjectURL: crearUrl, revokeObjectURL: vi.fn() }))
+    const imprimir = vi.spyOn(window, 'print').mockImplementation(() => undefined)
+    const clicEnlace = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => undefined)
+    render(<Huesped datos={datos} />)
+    await user.click(screen.getByRole('button', { name: 'Empezar' }))
+    await anadirAdulto(user)
+    await user.click(screen.getByRole('button', { name: 'Terminar y obtener el código' }))
+    await screen.findByLabelText('Código de envío')
+
+    await user.click(screen.getByRole('button', { name: 'Descargar ficha en PDF' }))
+    const blob = crearUrl.mock.calls.at(-1)?.[0] as Blob
+    expect(blob.type).toBe('application/pdf')
+    const cabecera = new TextDecoder().decode((await blob.arrayBuffer()).slice(0, 8))
+    expect(cabecera).toBe('%PDF-1.4')
+    expect(clicEnlace).toHaveBeenCalled()
+
+    await user.click(screen.getByRole('button', { name: 'Imprimir ficha' }))
+    expect(imprimir).toHaveBeenCalled()
+    // vista de impresión presente (oculta en pantalla), con los datos legibles
+    const hoja = document.querySelector('.hoja-impresion') as HTMLElement
+    expect(hoja).toHaveTextContent('Lucía')
+    expect(hoja).toHaveTextContent('12345678Z')
+    expect(screen.getByText(/la ficha NO está cifrada/)).toBeInTheDocument()
+    vi.restoreAllMocks()
+    vi.unstubAllGlobals()
   })
 
   it('se puede terminar con menos viajeros de los de la reserva (recepción lo revisará)', async () => {
