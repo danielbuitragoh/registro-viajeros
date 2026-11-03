@@ -112,7 +112,7 @@ export function Huesped({ datos }: { datos: DatosEnlace }) {
             {viajeros.length > 0 && viajeros.length < datos.n && <p className="ayuda">{tr('h.resumen.faltan', { n: viajeros.length, total: datos.n })}</p>}
             <div className="acciones">
               <button type="button" className="secundario" onClick={() => setPantalla({ tipo: 'editar', id: crypto.randomUUID() })}>
-                {tr('h.anadir')}
+                {tr(viajeros.length === 0 ? 'h.anadir_primero' : 'h.anadir')}
               </button>
               <button type="button" className="primario" disabled={viajeros.length === 0} onClick={() => setPantalla({ tipo: 'codigo' })}>
                 {tr('h.terminar')}

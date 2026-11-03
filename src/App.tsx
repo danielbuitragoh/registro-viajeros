@@ -28,12 +28,8 @@ export function Puerta() {
           <button
             type="button"
             className="secundario"
-            onClick={async () => {
-              await app.crear(PASSWORD_DEMO)
-              const d = crearDatosDemo(app.ahora())
-              await app.guardarEstablecimiento(d.establecimiento)
-              for (const r of d.reservas) await app.guardarReserva(r)
-            }}
+            // Todo se guarda antes de mostrar la recepción (ver AppProvider.crear)
+            onClick={() => app.crear(PASSWORD_DEMO, crearDatosDemo(app.ahora()))}
           >
             Entrar a la demo con datos ficticios
           </button>

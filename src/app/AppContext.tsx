@@ -13,7 +13,11 @@ export interface AppValor {
   purga?: ResultadoPurga
   almacen: Almacen | null
   ahora: () => Date
-  crear: (password: string) => Promise<void>
+  /**
+   * Crea el almacén. Si se pasan datos iniciales (demo), se guardan TODOS antes de pasar a «listo»: así la recepción
+   * nunca se muestra a medio rellenar (filas apareciendo y moviéndose bajo el dedo).
+   */
+  crear: (password: string, inicial?: DatosIniciales) => Promise<void>
   desbloquear: (password: string) => Promise<boolean>
   bloquear: () => void
   guardarReserva: (r: Reserva) => Promise<void>
@@ -22,6 +26,11 @@ export interface AppValor {
   recargar: () => Promise<void>
   purgarAhora: () => Promise<ResultadoPurga>
   destruirTodo: () => Promise<void>
+}
+
+export interface DatosIniciales {
+  establecimiento?: Establecimiento
+  reservas: Reserva[]
 }
 
 const Ctx = createContext<AppValor | null>(null)
@@ -113,9 +122,11 @@ export function AppProvider({ children, nombreBd = 'registro-viajeros', iteracio
       purga,
       almacen: almacenRef.current,
       ahora: () => ahoraRef.current(),
-      crear: async (password) => {
+      crear: async (password, inicial) => {
         const a = almacenRef.current as Almacen
         await a.crear(password, iteraciones ? { iteraciones } : {})
+        if (inicial?.establecimiento) await a.guardar('config', 'establecimiento', inicial.establecimiento)
+        for (const r of inicial?.reservas ?? []) await a.guardar('reservas', r.id, r)
         await cargarDatos()
         setFase('listo')
       },
