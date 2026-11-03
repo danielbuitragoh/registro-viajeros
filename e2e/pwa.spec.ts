@@ -1,4 +1,8 @@
+import { appendFile, cp, mkdtemp, rm } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import type { Page } from '@playwright/test'
+import { servirCarpeta } from './servidorEstatico'
 import { expect, test } from './guardia'
 
 /** Espera a que el service worker esté activo y controle la página (primera carga completa). */
@@ -52,28 +56,47 @@ test('sin conexión tras la primera carga: recepción, autocompletado de municip
   await huesped.goto(enlace)
   await expect(huesped.getByRole('heading', { level: 1, name: 'Datos de los viajeros' })).toBeVisible()
   await huesped.getByRole('button', { name: 'Empezar' }).click()
+  await huesped.getByRole('button', { name: 'Añadir viajero' }).click()
   await expect(huesped.getByRole('combobox', { name: /^Nombre del municipio/ })).toBeVisible()
 })
 
-test('aviso de nueva versión: al publicar otra versión aparece el aviso y «Actualizar ahora» la activa', async ({ page, context }) => {
-  await page.goto('/')
-  await esperarServiceWorker(page)
-
-  // Se «publica» una versión nueva: el sw.js cambia
-  const original = await (await page.request.get(new URL('sw.js', page.url()).href)).text()
-  await context.route('**/sw.js', (r) => r.fulfill({ status: 200, contentType: 'application/javascript', body: `${original}\n// versión nueva simulada por la prueba\n` }))
-  await page.evaluate(async () => {
-    await (await navigator.serviceWorker.getRegistration())?.update()
+test('aviso de nueva versión: al desplegar otra versión aparece el aviso y «Actualizar ahora» la activa', async ({ browser }) => {
+  // Copia del build servida en otro puerto por un servidor que lee el disco en cada petición: así se puede «desplegar»
+  const carpeta = await mkdtemp(join(tmpdir(), 'rv-despliegue-'))
+  await cp(join(process.cwd(), 'dist'), carpeta, { recursive: true })
+  const servidor = await servirCarpeta(carpeta, 4174)
+  const origen = 'http://localhost:4174'
+  const ctx = await browser.newContext({ locale: 'es-ES' })
+  const externas: string[] = []
+  ctx.on('request', (r) => {
+    if (!r.url().startsWith(`${origen}/`) && !/^(data|blob):/.test(r.url())) externas.push(r.url())
   })
+  try {
+    const page = await ctx.newPage()
+    await page.goto(`${origen}/`)
+    await esperarServiceWorker(page)
+    await expect(page.getByRole('region', { name: 'Nueva versión disponible' })).toHaveCount(0)
 
-  const aviso = page.getByRole('region', { name: 'Nueva versión disponible' })
-  await expect(aviso).toBeVisible()
-  await expect(aviso.getByRole('status')).toHaveText('Hay una nueva versión de la app.')
-  // Mientras no se acepta, sigue mandando la versión anterior
-  expect(await page.evaluate(async () => !!(await navigator.serviceWorker.getRegistration())?.waiting)).toBe(true)
+    // Despliegue de una versión nueva: cambia el service worker
+    await appendFile(join(carpeta, 'sw.js'), '\n// versión nueva desplegada por la prueba\n')
+    await page.evaluate(async () => {
+      await (await navigator.serviceWorker.getRegistration())?.update()
+    })
 
-  await aviso.getByRole('button', { name: 'Actualizar ahora' }).click()
-  await expect(page.getByRole('button', { name: 'Entrar a la demo con datos ficticios' })).toBeVisible()
-  await expect(aviso).toBeHidden()
-  await expect.poll(() => page.evaluate(async () => !!(await navigator.serviceWorker.getRegistration())?.waiting)).toBe(false)
+    const aviso = page.getByRole('region', { name: 'Nueva versión disponible' })
+    await expect(aviso).toBeVisible()
+    await expect(page.getByRole('status').filter({ hasText: 'Hay una nueva versión de la app.' })).toHaveCount(1)
+    // Mientras no se acepta, la nueva espera y sigue mandando la anterior
+    expect(await page.evaluate(async () => !!(await navigator.serviceWorker.getRegistration())?.waiting)).toBe(true)
+
+    await aviso.getByRole('button', { name: 'Actualizar ahora' }).click()
+    await expect(page.getByRole('button', { name: 'Entrar a la demo con datos ficticios' })).toBeVisible()
+    await expect(aviso).toBeHidden()
+    await expect.poll(() => page.evaluate(async () => !!(await navigator.serviceWorker.getRegistration())?.waiting)).toBe(false)
+    expect(externas, 'peticiones a otros orígenes').toEqual([])
+  } finally {
+    await ctx.close()
+    servidor.close()
+    await rm(carpeta, { recursive: true, force: true })
+  }
 })

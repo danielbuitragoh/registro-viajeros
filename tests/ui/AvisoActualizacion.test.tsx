@@ -5,9 +5,10 @@ import { axeSinContraste as axe, TIMEOUT_AXE } from '../axe'
 import { AvisoActualizacion } from '../../src/pwa/AvisoActualizacion'
 
 describe('aviso de nueva versión disponible', () => {
-  it('no muestra nada si no hay versión nueva', () => {
-    const { container } = render(<AvisoActualizacion hayNuevaVersion={false} idioma="es" recepcion actualizar={vi.fn()} />)
-    expect(container).toBeEmptyDOMElement()
+  it('sin versión nueva no muestra nada, pero la región de estado ya existe (para que el anuncio llegue a los lectores de pantalla)', () => {
+    render(<AvisoActualizacion hayNuevaVersion={false} idioma="es" recepcion actualizar={vi.fn()} />)
+    expect(screen.queryByRole('region')).not.toBeInTheDocument()
+    expect(screen.getByRole('status')).toBeEmptyDOMElement()
   })
 
   it('en recepción: lo anuncia (región de estado), avisa de que se recargará y pedirá la contraseña, y actualiza al pulsar', async () => {

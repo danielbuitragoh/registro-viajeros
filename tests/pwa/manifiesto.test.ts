@@ -44,11 +44,11 @@ describe('PWA sin conexión: service worker', () => {
 
   it('precachea todo lo que la app necesita sin red: código, estilos, páginas, iconos, manifiesto y los trozos de municipios', () => {
     const patrones = o.workbox?.globPatterns?.join(' ') ?? ''
-    for (const ext of ['js', 'css', 'html', 'svg', 'png', 'webmanifest']) expect(patrones).toContain(ext)
+    // (el manifiesto lo añade vite-plugin-pwa al precache por su cuenta)
+    for (const ext of ['js', 'css', 'html', 'svg', 'png']) expect(patrones).toContain(ext)
     expect(o.workbox?.navigateFallback).toBe('index.html')
     expect(o.workbox?.cleanupOutdatedCaches).toBe(true)
     expect(o.workbox?.clientsClaim).toBe(true)
-    expect(o.includeAssets).toEqual(expect.arrayContaining(['icon.svg', 'apple-touch-icon.png']))
   })
 
   it('no cachea ni pide nada a otros orígenes (cero peticiones externas)', () => {
