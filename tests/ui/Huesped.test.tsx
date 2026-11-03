@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { axeSinContraste as axe, TIMEOUT_AXE } from '../axe'
@@ -77,14 +77,35 @@ describe('Modo huésped — flujo completo', () => {
     expect(await screen.findByRole('button', { name: 'Añadir otro viajero' })).toBeInTheDocument()
   })
 
-  it('cambia de idioma: textos y atributo lang del documento', async () => {
+  it('cambia de idioma con el selector: textos, atributo lang del documento y cada opción marcada con su idioma', async () => {
     const user = userEvent.setup()
     render(<Huesped datos={datos} />)
-    await user.click(screen.getByRole('button', { name: 'Switch to English' }))
+    const selector = screen.getByRole('combobox', { name: /Idioma/ })
+    // cada opción se nombra en su lengua y lleva su lang (WCAG 3.1.2)
+    expect(within(selector).getByRole('option', { name: 'Deutsch' })).toHaveAttribute('lang', 'de')
+    await user.selectOptions(selector, 'en')
     expect(screen.getByRole('heading', { name: 'Traveller details' })).toBeInTheDocument()
     expect(document.documentElement.lang).toBe('en')
-    // el propio botón de cambio de idioma está marcado con el idioma de destino (WCAG 3.1.2)
-    expect(screen.getByRole('button', { name: 'Cambiar a español' })).toHaveAttribute('lang', 'es')
+    for (const [l, titulo] of [
+      ['fr', 'Données des voyageurs'],
+      ['de', 'Angaben der Reisenden'],
+      ['it', 'Dati dei viaggiatori'],
+      ['pt', 'Dados dos viajantes'],
+    ] as const) {
+      await user.selectOptions(screen.getByRole('combobox', { name: /Language|Langue|Sprache|Lingua|Idioma/ }), l)
+      expect(screen.getByRole('heading', { level: 1, name: titulo })).toBeInTheDocument()
+      expect(document.documentElement.lang).toBe(l)
+    }
+  })
+
+  it('formulario completo en alemán: etiquetas y opciones oficiales traducidas', async () => {
+    const user = userEvent.setup()
+    render(<Huesped datos={{ ...datos, l: 'de' }} />)
+    await user.click(screen.getByRole('button', { name: 'Starten' }))
+    await user.click(screen.getByRole('button', { name: 'Reisenden hinzufügen' }))
+    expect(screen.getByLabelText('Vorname')).toBeInTheDocument()
+    expect(within(screen.getByLabelText(/Ausweisart/)).getByRole('option', { name: 'Reisepass' })).toHaveAttribute('value', 'PAS')
+    expect(within(screen.getAllByLabelText(/Staatsangehörigkeit/)[0] as HTMLElement).getByRole('option', { name: 'Deutschland' })).toHaveAttribute('value', 'DEU')
   })
 
   it('se puede terminar con menos viajeros de los de la reserva (recepción lo revisará)', async () => {
