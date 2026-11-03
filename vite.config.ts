@@ -14,6 +14,16 @@ const CSP =
 
 export default defineConfig({
   base,
+  // Dos entradas más: la página de presentación (estática, sin JavaScript) en español e inglés
+  build: {
+    rollupOptions: {
+      input: {
+        app: 'index.html',
+        presentacion: 'presentacion/index.html',
+        presentacionEn: 'presentacion/en/index.html',
+      },
+    },
+  },
   plugins: [
     react(),
     {

@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#1f4e79" />
+    <meta name="referrer" content="no-referrer" />
+    <!--CSP-->
+    <title>Registro de viajeros · Guest registration for guest houses, holiday flats and rural homes in Spain</title>
+    <meta name="description" content="Free, open-source app to register your guests and prepare the SES.Hospedajes file without property-management software. Runs in the browser, with no server, and keeps the data encrypted on your device. Not official." />
+    <link rel="icon" type="image/svg+xml" href="../../icon.svg" />
+    <link vite-ignore rel="alternate" hreflang="es" href="../" />
+    <link vite-ignore rel="alternate" hreflang="en" href="./" />
+    <link rel="stylesheet" href="../presentacion.css" />
+  </head>
+  <body>
+    <a class="saltar" href="#contenido">Skip to content</a>
+    <header class="cabecera">
+      <p class="marca" lang="es">Registro de viajeros</p>
+      <nav aria-label="Language">
+        <ul>
+          <li><a href="../" lang="es" hreflang="es">Español</a></li>
+          <li><a href="./" lang="en" hreflang="en" aria-current="page">English</a></li>
+        </ul>
+      </nav>
+    </header>
+
+    <main id="contenido" tabindex="-1">
+      <h1>Guest registration for small accommodation in Spain</h1>
+      <p class="entradilla">
+        For guest houses (<span lang="es">pensiones</span>), holiday flats and rural homes <strong>without property-management software</strong>: your guests
+        fill in their details on their phone, you see at a glance which reports are missing, and you generate the file that SES.Hospedajes asks for. Free,
+        open source and serverless.
+      </p>
+      <p class="aviso">
+        <strong>Important:</strong> this is an unofficial tool. <strong>It does not send anything to the Ministry of the Interior</strong>: it prepares and
+        validates the file, and <strong>you upload it</strong> to the SES.Hospedajes portal. The accommodation <strong>remains responsible for reporting</strong>
+        each guest's details on time (24 hours) and correctly.
+      </p>
+      <p class="acciones">
+        <a class="boton primario" href="../../">Try the demo (fictitious data)</a>
+        <a class="boton" href="https://github.com/danielbuitragoh/registro-viajeros#readme">Read the instructions (README)</a>
+      </p>
+
+      <figure>
+        <img src="../img/lista-dia.webp" width="720" height="589" loading="lazy" decoding="async" alt="Reception screen (in Spanish): today's list with the status of each report (complete or pending) and the 24-hour warning." />
+        <figcaption>Today's list at reception (demo with fictitious data; the reception screens are in Spanish).</figcaption>
+      </figure>
+
+      <section aria-labelledby="h-hace">
+        <h2 id="h-hace">What it does</h2>
+        <ul>
+          <li><strong>Guests fill in their form on their own phone</strong>, in Spanish, English, French, German, Italian or Portuguese, from a link or QR code you send them. Nothing to install, no accounts.</li>
+          <li><strong>Reception imports it by scanning a QR code</strong> with the camera (or by pasting a code). You can also fill in the forms yourself.</li>
+          <li><strong>Checks each report</strong> with clear messages (second surname missing, the DNI letter does not match…) and <strong>warns you about those due</strong> within 24 hours.</li>
+          <li><strong>Generates the bulk-upload XML file</strong> (guest reports or accommodation bookings) following the Ministry's official document, and validates it twice before letting you download it.</li>
+          <li><strong>Works offline</strong> once opened, and can be installed as an app on the reception computer, tablet or phone.</li>
+        </ul>
+      </section>
+
+      <figure class="figura-movil">
+        <img src="../img/huesped.webp" width="300" height="611" loading="lazy" decoding="async" alt="Guest form on a phone, in French, with the language selector at the top." />
+        <figcaption>The form your guests fill in on their phone.</figcaption>
+      </figure>
+
+      <section aria-labelledby="h-no-hace">
+        <h2 id="h-no-hace">What it does NOT do</h2>
+        <ul>
+          <li><strong>It does not send anything to the Ministry</strong> and does not connect to SES.Hospedajes. Until you upload the file to the portal, the report <strong>has not been made</strong>.</li>
+          <li><strong>It does not take the responsibility off you</strong>: the accommodation answers for reporting on time and correctly. Check your first file on the portal: the app could not be tested against the live portal.</li>
+          <li><strong>It does not store anything in the cloud</strong> or make backups for you: if you lose the device or the password without a backup, the data is lost.</li>
+          <li><strong>It does not send email or SMS alerts</strong>: deadline warnings show up when you open the app.</li>
+          <li><strong>It is not legal advice</strong> (GDPR, Spanish data-protection law): ask whoever is appropriate.</li>
+        </ul>
+      </section>
+
+      <section aria-labelledby="h-privacidad">
+        <h2 id="h-privacidad">Privacy: everything stays on your device, encrypted</h2>
+        <ul>
+          <li>No server, no accounts, no analytics and no cookies: <strong>the data never leaves your device</strong> and nobody else can see it.</li>
+          <li>It is stored <strong>encrypted</strong> (AES-256) with a key derived from the establishment password. <strong>That password cannot be recovered</strong>: keep it safe.</li>
+          <li>The guest's form travels from their phone to reception as an <strong>encrypted code</strong> (QR, text or file), without going through any server.</li>
+          <li>Bookings are deleted automatically after 3 years (with prior warning), and you can download <strong>encrypted backups</strong> to keep outside the device.</li>
+        </ul>
+      </section>
+
+      <section aria-labelledby="h-pasos">
+        <h2 id="h-pasos">Get started in 3 steps</h2>
+        <ol class="pasos">
+          <li><strong>Open the app</strong> in the browser of the reception computer or tablet (at the address where you have published it; to try it out, in the demo) and <strong>create the establishment password</strong>. If you like, install it from the browser to use it as an app, offline too.</li>
+          <li>In <strong lang="es">Ajustes</strong> (Settings), enter the establishment details (the code SES.Hospedajes gave you) and <strong>create your first booking</strong>. Tap «<span lang="es">Crear enlace para el huésped</span>» (create guest link) and send it by WhatsApp or email.</li>
+          <li><strong>Scan the guest's QR code</strong>, review the report and, once it is complete, go to <span lang="es">Exportar</span> (Export), download the file and <strong>upload it yourself to the SES.Hospedajes portal</strong> within 24 hours.</li>
+        </ol>
+        <p>And one habit: an encrypted backup once a week, kept outside that device.</p>
+        <p class="acciones">
+          <a class="boton primario" href="../../">Try the demo (fictitious data)</a>
+          <a class="boton" href="https://github.com/danielbuitragoh/registro-viajeros#readme">Full guide in the README</a>
+        </p>
+      </section>
+    </main>
+
+    <footer class="pie">
+      <p>Free software (MIT licence) and <strong>not official</strong>: not affiliated with or endorsed by the Spanish Ministry of the Interior.</p>
+      <p>Idea, specification and review: Daniel Buitrago. Code: Claude Code (Anthropic's AI agent).</p>
+    </footer>
+  </body>
+</html>

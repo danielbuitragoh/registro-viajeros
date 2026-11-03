@@ -39,7 +39,7 @@ export function opcionesPwa(base: string): Partial<VitePWAOptions> {
     includeManifestIcons: false,
     manifest: manifiesto(base),
     workbox: {
-      globPatterns: ['**/*.{js,css,html,svg,png,json}'],
+      globPatterns: ['**/*.{js,css,html,svg,png,webp,json}'],
       navigateFallback: 'index.html',
       cleanupOutdatedCaches: true,
       clientsClaim: true,

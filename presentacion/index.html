@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#1f4e79" />
+    <meta name="referrer" content="no-referrer" />
+    <!--CSP-->
+    <title>Registro de viajeros · Para pensiones, pisos turísticos y casas rurales</title>
+    <meta name="description" content="App libre y gratuita para registrar a tus huéspedes y preparar el fichero de SES.Hospedajes sin programa de gestión. Funciona en el navegador, sin servidor y con los datos cifrados en tu dispositivo. No oficial." />
+    <link rel="icon" type="image/svg+xml" href="../icon.svg" />
+    <link vite-ignore rel="alternate" hreflang="es" href="./" />
+    <link vite-ignore rel="alternate" hreflang="en" href="en/" />
+    <link rel="stylesheet" href="./presentacion.css" />
+  </head>
+  <body>
+    <a class="saltar" href="#contenido">Saltar al contenido</a>
+    <header class="cabecera">
+      <p class="marca">Registro de viajeros</p>
+      <nav aria-label="Idioma">
+        <ul>
+          <li><a href="./" lang="es" hreflang="es" aria-current="page">Español</a></li>
+          <li><a href="en/" lang="en" hreflang="en">English</a></li>
+        </ul>
+      </nav>
+    </header>
+
+    <main id="contenido" tabindex="-1">
+      <h1>Registro de viajeros para alojamientos pequeños</h1>
+      <p class="entradilla">
+        Para pensiones, pisos turísticos, casas rurales y casas de huéspedes <strong>sin programa de gestión</strong>: tus huéspedes rellenan sus datos en
+        su móvil, tú ves de un vistazo qué partes faltan y generas el fichero que pide SES.Hospedajes. Gratis, libre y sin servidor.
+      </p>
+      <p class="aviso">
+        <strong>Importante:</strong> es una herramienta no oficial. <strong>No envía nada al Ministerio del Interior</strong>: prepara y valida el
+        fichero, y <strong>lo subes tú</strong> al portal SES.Hospedajes. El alojamiento <strong>sigue siendo responsable de comunicar</strong> los
+        datos de cada viajero en plazo (24 horas) y de que sean correctos.
+      </p>
+      <p class="acciones">
+        <a class="boton primario" href="../">Probar la demo (datos ficticios)</a>
+        <a class="boton" href="https://github.com/danielbuitragoh/registro-viajeros#readme">Leer las instrucciones (README)</a>
+      </p>
+
+      <figure>
+        <img src="img/lista-dia.webp" width="720" height="589" loading="lazy" decoding="async" alt="Pantalla de recepción: lista del día con el estado de cada parte (completo o pendiente) y el aviso de las 24 horas." />
+        <figcaption>La lista del día en recepción (demo con datos ficticios).</figcaption>
+      </figure>
+
+      <section aria-labelledby="h-hace">
+        <h2 id="h-hace">Qué hace</h2>
+        <ul>
+          <li><strong>El huésped rellena su ficha en su móvil</strong>, en español, inglés, francés, alemán, italiano o portugués, desde un enlace o un QR que le envías. No instala nada ni crea cuentas.</li>
+          <li><strong>Recepción la importa escaneando un QR</strong> con la cámara (o pegando un código). También puedes rellenar las fichas tú.</li>
+          <li><strong>Revisa cada parte</strong> con mensajes claros (falta el segundo apellido, la letra del DNI no cuadra…) y <strong>avisa de los que vencen</strong> en 24 horas.</li>
+          <li><strong>Genera el fichero XML de alta masiva</strong> (partes de viajeros o reservas de hospedaje) según el documento oficial del Ministerio, y lo valida dos veces antes de dejarte descargarlo.</li>
+          <li><strong>Funciona sin conexión</strong> una vez abierta, y se puede instalar como una app en el ordenador, la tablet o el móvil de recepción.</li>
+        </ul>
+      </section>
+
+      <figure class="figura-movil">
+        <img src="img/huesped.webp" width="300" height="611" loading="lazy" decoding="async" alt="Formulario del huésped en un móvil, en francés, con el selector de idioma arriba." />
+        <figcaption>El formulario que rellena el huésped en su móvil.</figcaption>
+      </figure>
+
+      <section aria-labelledby="h-no-hace">
+        <h2 id="h-no-hace">Qué NO hace</h2>
+        <ul>
+          <li><strong>No envía nada al Ministerio</strong> ni se conecta con SES.Hospedajes. Hasta que subes el fichero al portal, la comunicación <strong>no está hecha</strong>.</li>
+          <li><strong>No te quita la responsabilidad</strong>: el alojamiento responde de comunicar a tiempo y bien. Contrasta el primer fichero en el portal: la app no se ha podido probar contra el portal real.</li>
+          <li><strong>No guarda nada en la nube</strong> ni hace copias por ti: si pierdes el equipo o la contraseña sin una copia de seguridad, los datos se pierden.</li>
+          <li><strong>No manda avisos por correo ni SMS</strong>: los avisos de plazo se ven al abrir la app.</li>
+          <li><strong>No es asesoría jurídica</strong> (RGPD, LOPDGDD): consulta con quien corresponda.</li>
+        </ul>
+      </section>
+
+      <section aria-labelledby="h-privacidad">
+        <h2 id="h-privacidad">Privacidad: todo se queda en tu dispositivo, cifrado</h2>
+        <ul>
+          <li>Sin servidor, sin cuentas, sin analítica y sin cookies: <strong>los datos no salen de tu dispositivo</strong> y nadie más puede verlos.</li>
+          <li>Se guardan <strong>cifrados</strong> (AES-256) con una clave que sale de la contraseña del establecimiento. <strong>Esa contraseña no se puede recuperar</strong>: guárdala bien.</li>
+          <li>La ficha del huésped viaja de su móvil a recepción como un <strong>código cifrado</strong> (QR, texto o archivo), sin pasar por ningún servidor.</li>
+          <li>Las reservas se borran solas a los 3 años (con aviso previo) y puedes descargar <strong>copias de seguridad cifradas</strong> para guardarlas fuera del equipo.</li>
+        </ul>
+      </section>
+
+      <section aria-labelledby="h-pasos">
+        <h2 id="h-pasos">Cómo empezar en 3 pasos</h2>
+        <ol class="pasos">
+          <li><strong>Abre la app</strong> en el navegador del ordenador o la tablet de recepción (en la dirección donde la tengas publicada; para probar, en la demo) y <strong>crea la contraseña del establecimiento</strong>. Si quieres, instálala desde el navegador para usarla como una app, también sin conexión.</li>
+          <li>En <strong>Ajustes</strong>, pon los datos del establecimiento (el código que te dio SES.Hospedajes) y <strong>crea la primera reserva</strong>. Pulsa «Crear enlace para el huésped» y envíaselo por WhatsApp o correo.</li>
+          <li><strong>Escanea el QR del huésped</strong>, revisa el parte y, cuando esté completo, ve a Exportar, descarga el fichero y <strong>súbelo tú al portal SES.Hospedajes</strong> dentro de las 24 horas.</li>
+        </ol>
+        <p>Y una costumbre: una copia de seguridad cifrada a la semana, guardada fuera de ese equipo.</p>
+        <p class="acciones">
+          <a class="boton primario" href="../">Probar la demo (datos ficticios)</a>
+          <a class="boton" href="https://github.com/danielbuitragoh/registro-viajeros#readme">Guía completa en el README</a>
+        </p>
+      </section>
+    </main>
+
+    <footer class="pie">
+      <p>Herramienta libre (licencia MIT) y <strong>no oficial</strong>: no está afiliada ni respaldada por el Ministerio del Interior.</p>
+      <p>Idea, especificación y revisión: Daniel Buitrago. Código: Claude Code (agente de IA de Anthropic).</p>
+    </footer>
+  </body>
+</html>
