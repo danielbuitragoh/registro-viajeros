@@ -74,3 +74,26 @@ describe('nombres de países en cada idioma (Intl.DisplayNames, sin tablas propi
     expect(paisesOrdenados(idioma)).toHaveLength(249)
   })
 })
+
+describe('revisión de traducciones (errores claros corregidos; siguen pendientes de revisión nativa)', () => {
+  it('fr: el pie de la ficha (impreso en el PDF) tiene verbo: «n’a été envoyée à aucun serveur»', () => {
+    expect(t('fr', 'h.ficha.pie')).toContain('n’a été envoyée à aucun serveur')
+  })
+
+  it('de: el número de soporte es el del documento, no el del «titular» (Ausweisträger)', () => {
+    expect(t('de', 'f.soporte_ayuda')).not.toMatch(/Ausweisträger/)
+    expect(t('de', 'f.soporte_ayuda')).toMatch(/Nummer des Dokuments selbst/)
+  })
+
+  it('de: verbos separables completos en el aviso de la ficha («vorzeigen» / «abgeben»)', () => {
+    expect(t('de', 'h.resultado.ficha_ayuda')).toMatch(/zeigen Sie es nur an der Rezeption vor oder geben Sie es dort ab/)
+  })
+
+  it('de: el aviso de pasaporte tiene sujeto («Die Nummer …») para que el «sie» siguiente tenga a qué referirse', () => {
+    expect(t('de', 'e.pasaporte_formato_pais')).toMatch(/^Die Nummer entspricht nicht/)
+  })
+
+  it('pt: «a receção preenche-o» (no «a receção completa», que se lee como sustantivo + adjetivo)', () => {
+    expect(t('pt', 'f.municipio_ine_ayuda')).toMatch(/a receção preenche-o\.$/)
+  })
+})
