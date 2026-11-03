@@ -4,7 +4,7 @@
  * Reglas duras (error): 5–15 caracteres A-Z/0-9. Reglas blandas (aviso): longitud 6–9 (ICAO 9303) y patrón habitual del
  * país emisor (se usa la nacionalidad como aproximación). Los patrones son orientativos y NUNCA bloquean el alta.
  */
-import { normalizarDocumento } from './documentos'
+import { normalizarDocumento } from '@danielbuitragoh/documentos-es'
 
 export type ResultadoPasaporte =
   | { ok: true; normalizado: string; aviso?: 'formato_pais' | 'longitud_inusual' }

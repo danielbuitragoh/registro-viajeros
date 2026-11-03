@@ -5,7 +5,7 @@ import { alfa3Espana, esPaisAlfa3 } from '../oficial/paises'
 import { fechaLegible, nombreCoincide, type ConsultaIne } from '../ine/relacion'
 import { validarDireccion } from './direccion'
 import { validarCorreo, validarTelefono } from './contacto'
-import { normalizarDocumento, validarDNI, validarNIE } from './documentos'
+import { normalizarDocumento, validarDNI, validarNIE } from '@danielbuitragoh/documentos-es'
 import { edadEn, esFechaValida, esMayorDeEdad } from './fechas'
 import { validarPasaporte } from './pasaporte'
 

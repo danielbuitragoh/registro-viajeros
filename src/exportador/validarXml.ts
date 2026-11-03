@@ -5,7 +5,7 @@
  */
 import type { Incidencia, TipoComunicacion } from '../domain/tipos'
 import { esPaisAlfa3 } from '../oficial/paises'
-import { validarDNI, validarNIE } from '../validators/documentos'
+import { validarDNI, validarNIE } from '@danielbuitragoh/documentos-es'
 import { esFechaHoraValida, esFechaValida, esMayorDeEdad, soloFecha } from '../validators/fechas'
 import { ESQUEMA_PARTES, ESQUEMA_RESERVAS, type Def, type Regla } from './esquema'
 

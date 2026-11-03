@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { TIPO_DOCUMENTO } from '../../src/oficial/codigos'
 import { REGLAS_DOCUMENTO, ejemploDocumento } from '../../src/oficial/documentos'
-import { validarDNI, validarNIE } from '../../src/validators/documentos'
+import { validarDNI, validarNIE } from '@danielbuitragoh/documentos-es'
 import { validarPasaporte } from '../../src/validators/pasaporte'
 import { validarViajero } from '../../src/validators/viajero'
 import { adulto, extranjero } from '../fixtures'

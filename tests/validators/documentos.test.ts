@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { letraDni, validarDNI, validarNIE, validarCIF, normalizarDocumento } from '../../src/validators/documentos'
+import { letraDni, validarDNI, validarNIE, validarCIF, normalizarDocumento } from '@danielbuitragoh/documentos-es'
 
 describe('normalizarDocumento', () => {
   it('pasa a mayúsculas y quita espacios, guiones y puntos', () => {

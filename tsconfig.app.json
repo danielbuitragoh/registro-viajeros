@@ -26,7 +26,10 @@
       "@testing-library/jest-dom"
     ],
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
-    "allowImportingTsExtensions": true
+    "allowImportingTsExtensions": true,
+    "paths": {
+      "@danielbuitragoh/documentos-es": ["./packages/documentos-es/src/index.ts"]
+    }
   },
   "include": [
     "src",

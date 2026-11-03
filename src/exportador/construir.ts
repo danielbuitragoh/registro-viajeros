@@ -9,7 +9,7 @@
  */
 import type { Direccion, Establecimiento, Pago, Reserva, TipoComunicacion, Viajero } from '../domain/tipos'
 import { alfa3Espana } from '../oficial/paises'
-import { normalizarDocumento } from '../validators/documentos'
+import { normalizarDocumento } from '@danielbuitragoh/documentos-es'
 import { validarTelefono } from '../validators/contacto'
 import { aFechaHoraOficial } from '../validators/fechas'
 import { CABECERA_XML, bloque, hoja, limpiarTexto, renderizar, type Nodo } from './xml'
