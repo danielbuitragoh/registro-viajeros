@@ -26,6 +26,6 @@ test('demo en el móvil: la lista aparece completa y cada «Abrir» abre SU rese
   for (const ref of refs) {
     await page.getByRole('button', { name: `Abrir reserva ${ref}` }).tap()
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(`Reserva ${ref}`)
-    await page.getByRole('button', { name: '← Volver' }).tap()
+    await page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: 'Hoy' }).tap()
   }
 })

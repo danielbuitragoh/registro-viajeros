@@ -12,7 +12,9 @@ async function crearAlmacen(page: Page) {
   await page.getByLabel('Contraseña', { exact: true }).fill(PASSWORD)
   await page.getByLabel('Repite la contraseña').fill(PASSWORD)
   await page.getByLabel(/no se pueden recuperar/).check()
-  await page.getByRole('button', { name: 'Crear y entrar' }).click()
+  await page.getByRole('button', { name: 'Crear y seguir' }).click()
+  // Primer uso: el asistente (se prueba entero en asistente.spec.ts); aquí se salta
+  await page.getByRole('button', { name: 'Saltar los primeros pasos' }).click()
   await expect(page.getByRole('heading', { name: 'Lista del día' })).toBeVisible()
 }
 
@@ -20,6 +22,7 @@ test('flujo completo: reserva → enlace → ficha en el móvil → QR leído co
   // 1) Recepción: primer uso y establecimiento
   await crearAlmacen(page)
   await page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: 'Ajustes', exact: true }).click()
+  await page.getByRole('list', { name: 'Apartados de Ajustes' }).getByRole('link', { name: /Establecimiento/ }).click()
   await page.getByLabel(/^Nombre del establecimiento/).fill('Pensión E2E')
   await page.getByLabel(/^Código de establecimiento/).fill('0000012345')
   await page.getByLabel(/^Dirección/).first().fill('Calle Inventada 7')

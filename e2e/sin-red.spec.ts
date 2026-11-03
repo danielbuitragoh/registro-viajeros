@@ -14,11 +14,15 @@ test('ninguna pantalla hace peticiones a otro origen (recepción, exportación, 
     ['Reservas', 'Reservas'],
     ['Exportar', 'Exportar fichero de alta masiva'],
     ['Ajustes', 'Ajustes'],
+    ['Ayuda', 'Ayuda'],
     ['Hoy', 'Lista del día'],
   ]) {
     await page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: enlace, exact: true }).click()
     await expect(page.getByRole('heading', { level: 1, name: titulo })).toBeVisible()
   }
+  await page.goto('/#/primeros-pasos')
+  await expect(page.getByRole('heading', { level: 1, name: 'Primeros pasos' })).toBeVisible()
+  await page.goto('/#/')
   await page.getByRole('button', { name: /^Abrir reserva DEMO-/ }).first().click()
   await page.getByRole('button', { name: 'Crear enlace para el huésped' }).click()
   const enlace = await page.getByLabel('Enlace para el huésped').inputValue()
