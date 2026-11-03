@@ -71,7 +71,7 @@ describe('asistente de primeros pasos', () => {
       // Paso 4: enlace para el huésped (o un viajero de ejemplo para seguir sin móvil)
       expect(await screen.findByRole('heading', { level: 2, name: 'Enviar el enlace a un huésped' })).toBeInTheDocument()
       await user.click(screen.getByRole('button', { name: 'Crear enlace para el huésped' }))
-      expect(await screen.findByLabelText('Enlace para el huésped')).toHaveValue(expect.stringContaining('#/huesped/'))
+      expect(((await screen.findByLabelText('Enlace para el huésped')) as HTMLTextAreaElement).value).toContain('#/huesped/')
       await user.click(screen.getByRole('button', { name: 'Añadir un viajero de ejemplo (ficticio)' }))
       expect(await screen.findByText(/Ana Ejemplo/)).toBeInTheDocument()
       await user.click(screen.getByRole('button', { name: /Siguiente/ }))
