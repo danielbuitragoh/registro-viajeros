@@ -56,3 +56,24 @@ describe('PWA sin conexión: service worker', () => {
     expect(JSON.stringify(o)).not.toMatch(/https?:\/\//)
   })
 })
+
+describe('navegaciones: solo la raíz es la app; las páginas estáticas se sirven con su propio HTML', () => {
+  const o = opcionesPwa('/registro-viajeros/')
+  const lista = (o.workbox?.navigateFallbackAllowlist ?? []) as RegExp[]
+  const esApp = (rutaYBusqueda: string) => lista.some((r) => r.test(rutaYBusqueda))
+
+  it('el fallback a index.html solo vale para la raíz de la app (con o sin parámetros)', () => {
+    for (const x of ['/registro-viajeros/', '/registro-viajeros/index.html', '/registro-viajeros/?ref=x']) expect(esApp(x), x).toBe(true)
+    for (const x of ['/registro-viajeros/presentacion/', '/registro-viajeros/presentacion/en/', '/registro-viajeros/presentacion', '/registro-viajeros/presentacion/?ref=x', '/registro-viajeros/otra.html', '/'])
+      expect(esApp(x), x).toBe(false)
+  })
+
+  it('las páginas precacheadas se sirven aunque la URL traiga parámetros (enlaces compartidos)', () => {
+    const ignorar = (o.workbox?.ignoreURLParametersMatching ?? []) as RegExp[]
+    for (const p of ['ref', 'utm_source', 'fbclid', 'cualquiera']) expect(ignorar.some((r) => r.test(p)), p).toBe(true)
+  })
+
+  it('carga el complemento del service worker (barra final sin red y relevo del service worker antiguo)', () => {
+    expect(o.workbox?.importScripts).toEqual(['sw-complemento.js'])
+  })
+})

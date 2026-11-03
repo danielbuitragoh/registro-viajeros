@@ -1,5 +1,7 @@
 import type { ManifestOptions, VitePWAOptions } from 'vite-plugin-pwa'
 
+const escaparRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
 /** Manifiesto de la PWA (instalable en Android, Chrome, Edge, iOS…). `base`: ruta donde vive la app. */
 export function manifiesto(base: string): Partial<ManifestOptions> {
   return {
@@ -41,6 +43,13 @@ export function opcionesPwa(base: string): Partial<VitePWAOptions> {
     workbox: {
       globPatterns: ['**/*.{js,css,html,svg,png,webp,json}'],
       navigateFallback: 'index.html',
+      // Solo la raíz es la app (su enrutado va en el fragmento #). Cualquier otra navegación —la presentación, con o sin
+      // parámetros— se sirve con su propio HTML precacheado o va a la red: nunca recibe la app por error.
+      navigateFallbackAllowlist: [new RegExp(`^${escaparRegExp(base)}(index\\.html)?(\\?.*)?$`)],
+      // Los ficheros precacheados no dependen de parámetros: «/presentacion/?ref=whatsapp» es «/presentacion/»
+      ignoreURLParametersMatching: [/.*/],
+      // Barra final sin red y relevo del service worker antiguo (ver public/sw-complemento.js)
+      importScripts: ['sw-complemento.js'],
       cleanupOutdatedCaches: true,
       clientsClaim: true,
       // El trozo principal de la app ocupa ~600 kB: margen de sobra para que nunca se quede fuera del precache
