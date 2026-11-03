@@ -12,6 +12,11 @@ export const de: Record<ClaveTexto, string> = {
   'comun.elige': 'Bitte auswählen',
   'comun.ninguno': 'Keine Angabe',
   'comun.cerrar': 'Schließen',
+  'pwa.titulo': 'Neue Version verfügbar',
+  'pwa.nueva_version': 'Eine neue Version der App ist verfügbar.',
+  'pwa.recargar': 'Beim Aktualisieren wird die Seite neu geladen: Speichern Sie zuerst das Formular, das Sie gerade ausfüllen.',
+  'pwa.actualizar': 'Jetzt aktualisieren',
+  'pwa.mas_tarde': 'Später',
   // ---- Gast: Bildschirme ----
   'h.bienvenida.titulo': 'Angaben der Reisenden',
   'h.bienvenida.intro': 'Nach spanischem Recht müssen alle Unterkünfte die Daten jedes Gastes registrieren. Füllen Sie sie hier auf Ihrem Handy aus, das beschleunigt den Check-in.',

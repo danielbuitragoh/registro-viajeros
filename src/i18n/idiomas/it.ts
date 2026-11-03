@@ -12,6 +12,11 @@ export const it: Record<ClaveTexto, string> = {
   'comun.elige': 'Scegli un’opzione',
   'comun.ninguno': 'Preferisco non indicarlo',
   'comun.cerrar': 'Chiudi',
+  'pwa.titulo': 'Nuova versione disponibile',
+  'pwa.nueva_version': 'È disponibile una nuova versione dell’app.',
+  'pwa.recargar': 'L’aggiornamento ricaricherà la pagina: salva prima la scheda che stai compilando.',
+  'pwa.actualizar': 'Aggiorna ora',
+  'pwa.mas_tarde': 'Più tardi',
   // ---- ospite: schermate ----
   'h.bienvenida.titulo': 'Dati dei viaggiatori',
   'h.bienvenida.intro': 'La legge spagnola obbliga tutte le strutture ricettive a registrare i dati di ogni ospite. Compilali qui, dal tuo telefono, per velocizzare il check-in.',

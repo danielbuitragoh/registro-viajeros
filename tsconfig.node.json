@@ -23,6 +23,7 @@
     "eslint.config.js",
     "playwright.config.ts",
     "e2e",
-    "scripts"
+    "scripts",
+    "pwa.config.ts"
   ]
 }

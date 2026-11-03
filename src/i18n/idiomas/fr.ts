@@ -12,6 +12,11 @@ export const fr: Record<ClaveTexto, string> = {
   'comun.elige': 'Choisissez une option',
   'comun.ninguno': 'Je préfère ne pas répondre',
   'comun.cerrar': 'Fermer',
+  'pwa.titulo': 'Nouvelle version disponible',
+  'pwa.nueva_version': 'Une nouvelle version de l’application est disponible.',
+  'pwa.recargar': 'La mise à jour rechargera la page : enregistrez d’abord la fiche en cours.',
+  'pwa.actualizar': 'Mettre à jour',
+  'pwa.mas_tarde': 'Plus tard',
   // ---- voyageur : écrans ----
   'h.bienvenida.titulo': 'Données des voyageurs',
   'h.bienvenida.intro': 'La loi espagnole oblige tous les hébergements à enregistrer les données de chaque voyageur. Remplissez-les ici, depuis votre téléphone, pour accélérer votre arrivée.',

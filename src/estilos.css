@@ -233,3 +233,11 @@ details summary { cursor: pointer; min-height: 48px; display: flex; align-items:
 .combo-lista [role='option']:hover { background: var(--fondo-suave); }
 /* Opción marcada: fondo, color y una barra lateral (no solo el color) */
 .combo-lista [role='option'][aria-selected='true'] { background: var(--primario); color: var(--sobre-primario); border-left-color: var(--foco); font-weight: 600; }
+
+/* Aviso de nueva versión (arriba, en el flujo: no tapa nada) */
+.aviso-version {
+  background: var(--info-fondo); border-bottom: 2px solid var(--primario);
+  padding: 0.75rem 1rem;
+}
+.aviso-version p { margin: 0 0 0.5rem; }
+.aviso-version .acciones { margin: 0; }

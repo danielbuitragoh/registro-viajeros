@@ -12,6 +12,11 @@ export const pt: Record<ClaveTexto, string> = {
   'comun.elige': 'Escolha uma opção',
   'comun.ninguno': 'Prefiro não indicar',
   'comun.cerrar': 'Fechar',
+  'pwa.titulo': 'Nova versão disponível',
+  'pwa.nueva_version': 'Está disponível uma nova versão da aplicação.',
+  'pwa.recargar': 'A atualização vai recarregar a página: guarde primeiro a ficha que está a preencher.',
+  'pwa.actualizar': 'Atualizar agora',
+  'pwa.mas_tarde': 'Mais tarde',
   // ---- hóspede: ecrãs ----
   'h.bienvenida.titulo': 'Dados dos viajantes',
   'h.bienvenida.intro': 'A lei espanhola obriga todos os alojamentos a registar os dados de cada hóspede. Preencha-os aqui, no seu telemóvel, para agilizar o check-in.',

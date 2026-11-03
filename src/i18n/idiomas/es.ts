@@ -10,6 +10,11 @@ export const es = {
   'comun.elige': 'Elige una opción',
   'comun.ninguno': 'Prefiero no indicarlo',
   'comun.cerrar': 'Cerrar',
+  'pwa.titulo': 'Nueva versión disponible',
+  'pwa.nueva_version': 'Hay una nueva versión de la app.',
+  'pwa.recargar': 'Al actualizar se recargará la página: guarda antes la ficha que estés rellenando.',
+  'pwa.actualizar': 'Actualizar ahora',
+  'pwa.mas_tarde': 'Más tarde',
   // ---- huésped: pantallas ----
   'h.bienvenida.titulo': 'Datos de los viajeros',
   'h.bienvenida.intro': 'La ley obliga a todos los alojamientos de España a registrar los datos de cada viajero. Rellénalos aquí, desde tu móvil, para agilizar la entrada.',
