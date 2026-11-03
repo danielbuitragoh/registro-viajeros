@@ -1,6 +1,7 @@
 import type { Incidencia, Viajero } from '../domain/tipos'
 import { PARENTESCO, SEXO, TIPO_DOCUMENTO, esCodigo } from '../oficial/codigos'
-import { esPaisAlfa3 } from '../oficial/paises'
+import { alfa3Espana, esPaisAlfa3 } from '../oficial/paises'
+import { fechaLegible, nombreCoincide, type ConsultaIne } from '../ine/relacion'
 import { validarDireccion } from './direccion'
 import { validarCorreo, validarTelefono } from './contacto'
 import { normalizarDocumento, validarDNI, validarNIE } from './documentos'
@@ -14,6 +15,8 @@ export interface ContextoViajero {
   modo: 'parte' | 'reserva'
   /** Ids de los viajeros adultos de la reserva (para validar al responsable de un menor). */
   adultosIds?: string[]
+  /** Relación de municipios del INE ya cargada (si la hay): solo genera avisos, nunca errores. */
+  ine?: ConsultaIne
 }
 
 const vacio = (s: string | undefined | null) => s === undefined || s === null || s.trim() === ''
@@ -82,6 +85,7 @@ export function validarViajero(v: Viajero, ctx: ContextoViajero): Incidencia[] {
   if (parte || hayDireccion) {
     const inc = d ? validarDireccion(d) : [err('direccion', 'requerido')]
     for (const i of inc) out.push({ ...i, campo: d ? `direccion.${i.campo}` : i.campo })
+    if (d && ctx.ine) out.push(...avisosIne(d, ctx.ine))
   }
 
   // --- Contacto: al menos uno de telefono, telefono2 o correo ---
@@ -100,6 +104,23 @@ export function validarViajero(v: Viajero, ctx: ContextoViajero): Incidencia[] {
   }
 
   return out
+}
+
+/**
+ * Código INE contra la relación de municipios cargada. Solo AVISOS: un municipio dado de alta después de la fecha
+ * de la relación es válido, y la relación puede estar desactualizada.
+ */
+function avisosIne(d: NonNullable<Viajero['direccion']>, ine: ConsultaIne): Incidencia[] {
+  const codigo = d.codigoMunicipio?.trim() ?? ''
+  if (d.pais !== alfa3Espana || !/^\d{5}$/.test(codigo)) return []
+  const e = ine(codigo)
+  const campo = 'direccion.codigoMunicipio'
+  const av = (c: string, params: Record<string, string>): Incidencia => ({ campo, codigo: c, gravedad: 'aviso', params })
+  if (!e) return []
+  if (e.tipo === 'no_figura') return [av('municipio_ine_no_figura', { codigo, fecha: fechaLegible(e.fecha) })]
+  if (e.tipo === 'baja') return [av('municipio_ine_baja', { codigo, nombre: e.municipio.nombre, fechaAnterior: fechaLegible(e.fechaAnterior), fecha: fechaLegible(e.fecha) })]
+  if (!vacio(d.nombreMunicipio) && !nombreCoincide(e.municipio, d.nombreMunicipio as string)) return [av('municipio_ine_nombre', { codigo, nombre: e.municipio.nombre })]
+  return []
 }
 
 function validarNumeroDocumento(v: Viajero): Incidencia[] {

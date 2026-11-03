@@ -80,6 +80,9 @@ export function Acceso({ modo, onCrear, onAbrir, pistaDemo }: AccesoProps) {
           </button>
         </div>
       </form>
+      <p>
+        <a href="presentacion/">¿Qué es y qué no es esta app? Presentación para alojamientos</a>
+      </p>
     </main>
   )
 }

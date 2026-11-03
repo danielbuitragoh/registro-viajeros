@@ -1,0 +1,12 @@
+{
+  "formato": 1,
+  "descripcion": "MUESTRA FICTICIA para pruebas y demo: NO son códigos del INE.",
+  "fecha": "2025-01-01",
+  "ficticia": true,
+  "origen": { "fichero": "relacion-ficticia-2025.xlsx", "sha256": "61378d45dbd507e04dff0ee26f3777e2eb7f45f52f948b15f0124a9350917eec" },
+  "total": 10,
+  "provincias": {
+    "98": ["001Villaficticia","002Ávila de Mentira","010Peña Simulada"],
+    "99": ["001Villaficticia","002Aldea de Prueba","003Rozas del Ensayo, Las","004Muestra/Mostra","005Coruñita de Ejemplo, A","006San Inventado de Abajo","007San Inventado de Arriba"]
+  }
+}

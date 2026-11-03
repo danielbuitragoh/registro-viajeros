@@ -28,6 +28,8 @@ La ficha que descarga el huésped lleva cada dato con su etiqueta **en español 
 
 **https://danielbuitragoh.github.io/registro-viajeros/** — datos 100 % ficticios; todo ocurre en tu navegador. Contraseña de la demo: `demo-hostal-2026`.
 
+**Presentación para dueños de alojamientos** (qué hace, qué no hace, privacidad y cómo empezar en 3 pasos): **https://danielbuitragoh.github.io/registro-viajeros/presentacion/** · [English](https://danielbuitragoh.github.io/registro-viajeros/presentacion/en/). Es una página estática, sin JavaScript, que también funciona sin conexión.
+
 > La demo se despliega con GitHub Actions al fusionar en `main` (ver `.github/workflows/pages.yml`). Hace falta una única vez activar *Settings → Pages → Source: GitHub Actions* en el repositorio.
 
 <p>
@@ -45,7 +47,7 @@ La ficha que descarga el huésped lleva cada dato con su etiqueta **en español 
 
 Lo justo para empezar hoy. Necesitas un ordenador o una tablet en recepción con Chrome, Edge, Firefox o Safari actualizados.
 
-1. **Minuto 1. Abre la app** (la dirección que publiques o la [demo](https://danielbuitragoh.github.io/registro-viajeros/) para probar) y **crea la contraseña del establecimiento**. Usa una frase larga y guárdala en un sitio seguro: **no se puede recuperar**.
+1. **Minuto 1. Abre la app** (la dirección que publiques o la [demo](https://danielbuitragoh.github.io/registro-viajeros/) para probar) y **crea la contraseña del establecimiento**. Usa una frase larga y guárdala en un sitio seguro: **no se puede recuperar**. Si quieres, **instálala** (icono de instalar en la barra de direcciones de Chrome/Edge, o «Añadir a pantalla de inicio» en el móvil): se abre como una app y **funciona sin conexión**.
 2. **Minuto 2. Ajustes → Establecimiento:** nombre, tipo y **código de establecimiento** (el que te dio SES.Hospedajes al registrarte). Pulsa *Guardar establecimiento*.
 3. **Minuto 3. Nueva reserva:** referencia, entrada, salida y nº de personas. Pulsa *Guardar reserva*.
 4. **Minuto 4. Crear enlace para el huésped** y envíaselo por WhatsApp o correo (o enséñale el QR en el mostrador). Elige su idioma: español, inglés, francés, alemán, italiano o portugués. El huésped rellena su ficha en el móvil y te enseña un **QR**.
@@ -67,8 +69,43 @@ Y una costumbre: **Ajustes → Copia de seguridad cifrada** una vez por semana, 
 8. **Súbelo tú al portal SES.Hospedajes.** Hasta que no lo subas, la comunicación **no está hecha**, aunque la app lo marque como «exportado».
 9. **Copias de seguridad:** *Ajustes → Copia de seguridad cifrada* (descarga un fichero cifrado). Hazla periódicamente: los datos viven solo en ese dispositivo.
 
+## Códigos de municipio INE (autocompletado sin red)
+
+En recepción (y, opcionalmente, en el formulario del huésped y en *Ajustes → Establecimiento*), el campo **Nombre del municipio** sugiere municipios mientras escribes; al elegir uno, el **código INE se rellena solo**. Funciona sin conexión: la relación va dentro de la app. Busca sin tildes, con el artículo delante («Las Rozas…» aunque el INE escriba «Rozas…, Las») y por cualquier parte de un nombre bilingüe; los municipios de la provincia del código postal salen primero (solo ordena, no valida).
+
+**De dónde salen los datos: SOLO del fichero oficial del INE** «Relación de municipios y sus códigos por provincias». No se descargan ni se teclean códigos de ninguna otra fuente. **Este repositorio todavía no incluye ese fichero**, así que hoy:
+
+- la **app normal** no trae relación y el código se escribe a mano (lo indica junto al campo);
+- la **demo** usa una **muestra FICTICIA** (provincias 98 y 99, que no existen; ver `tests/fixtures/ine/LEEME-FICTICIO.md`) para que se vea cómo funciona. Los domicilios de la demo usan esos municipios inventados.
+
+### Cómo añadir el fichero oficial (una vez al año)
+
+1. Descarga de la web del INE la «Relación de municipios y sus códigos por provincias» más reciente (es la que tiene fecha a 1 de enero). Si viene en `.xls` antiguo, ábrelo con Excel o LibreOffice y guárdalo como `.xlsx` **sin tocar nada más**.
+2. Cópialo **tal cual** en `docs/oficial/ine/` (p. ej. `docs/oficial/ine/diccionario26.xlsx`).
+3. Ejecuta (Node 22.18 o posterior):
+   ```bash
+   npm run ine:importar -- docs/oficial/ine/diccionario26.xlsx
+   ```
+   Si el título del fichero no trae la fecha, añade `--fecha 2026-01-01` (la que figure en la web del INE).
+4. Se crea `src/oficial/ine/municipios-AAAA-MM-DD.json` y el script lista las **altas, bajas (p. ej. fusiones) y cambios de nombre** respecto a la relación anterior. Ejecuta `npm test` y haz commit del fichero del INE **y** del JSON juntos.
+
+Qué comprueba el importador: que estén las columnas `CPRO`, `CMUN` y `NOMBRE` (en cualquier fila y orden), que cada código tenga sus cifras, que no haya códigos repetidos y que la fecha sea coherente. **Si algo no cuadra, se detiene y lo explica; nunca adivina.** El código de 5 dígitos es `CPRO` (2) + `CMUN` (3); el dígito de control `DC` no se usa (ver P15). Una prueba de guardia comprueba que **cada JSON de `src/oficial/ine/` se regenera idéntico desde su fichero en `docs/oficial/ine/` (misma huella SHA-256)** y que todo fichero oficial tiene su JSON: así nadie puede colar códigos que no salgan del INE. Si hay relación oficial, la muestra ficticia no se usa nunca, ni siquiera en la demo.
+
+> **Aviso honesto:** el lector se ha probado con muestras ficticias que imitan la forma de la relación (fila de título con la fecha, cabecera `CODAUTO · CPRO · CMUN · DC · NOMBRE`), escritas con otro programa (openpyxl) y en CSV Windows-1252. **No se ha probado con el fichero real del INE**: la primera vez, revisa el resumen que imprime el script (nº de municipios, fecha) antes de hacer commit.
+
+### Municipios que cambian de código (fusiones, altas) según la fecha de la relación
+
+La relación es una foto a una fecha. La app usa la **más reciente** que tenga y lo dice junto al campo («relación del INE a 01/01/2026»). Para un código escrito o importado de una ficha, la revisión del parte da **avisos, nunca errores** (un aviso no bloquea la exportación):
+
+- **no figura** en la relación → puede ser un error… o un municipio dado de alta después de esa fecha;
+- **figuraba en una relación anterior y ya no** (si conservas también la del año anterior en `docs/oficial/ine/` y su JSON) → probablemente una fusión: busca el municipio actual;
+- **el nombre escrito no es el de ese código** → revisa uno de los dos.
+
+Conserva al menos la relación del año anterior para que la app detecte las bajas. Cada relación es un trozo aparte (del orden de 150 kB sin comprimir, estimado para unos 8 100 municipios) que se carga solo al usarlo y que el *service worker* guarda para usarlo sin conexión.
+
 ## Decisiones de diseño
 
+- **App instalable que funciona sin conexión (PWA).** Tras la primera carga, un *service worker* guarda en el dispositivo todo lo necesario (código, estilos, páginas, iconos y la relación de municipios), así que recepción sigue funcionando aunque se caiga internet. No hay caché de nada externo. Cuando se publica una versión nueva, **no se recarga por sorpresa**: aparece un aviso «Hay una nueva versión de la app» con *Actualizar ahora* / *Más tarde* (en recepción recuerda que después pedirá la contraseña; en el móvil del huésped sale en su idioma). La app comprueba si hay versión nueva al abrirse y cada hora, pidiendo solo su propio `sw.js`.
 - **Local-first y sin servidor.** No hay backend, cuentas, analítica ni llamadas externas (la política de seguridad del navegador, CSP, solo permite recursos propios). Es la única forma de que el hostal no dependa de —ni entregue sus datos a— un tercero. Coste: los datos viven en un dispositivo, así que importa la copia de seguridad.
 - **Cifrado en reposo.** Todo en IndexedDB, cifrado con **AES-256-GCM**; la clave se deriva de la contraseña del establecimiento con **PBKDF2-SHA256 (600 000 iteraciones)** y no es exportable. Cada registro se cifra ligado a su identificador (AAD): un registro copiado a otro id se detecta. Se bloquea solo tras 15 min sin actividad.
 - **¿Cómo llega la ficha del móvil del huésped a recepción sin servidor?** El enlace/QR va en el *fragmento* de la URL (`#…`, que no viaja a ningún servidor) y contiene solo datos de la reserva (nada personal) y una clave aleatoria de 256 bits. El huésped rellena la ficha en su móvil y esta se cifra con esa clave en un **código de envío** ligado a la reserva, que entrega por texto, QR o archivo. Recepción lo importa. Alternativas descartadas: un servidor de paso (rompe el principio sin servidor) o WebRTC (necesita señalización).
@@ -93,7 +130,7 @@ Fuente única de verdad: [`docs/oficial/Instrucciones.pdf`](docs/oficial/Instruc
 | P1 | El PDF no incluye XSD ni espacio de nombres ni declaración XML | Emite `<?xml … UTF-8?>` y elementos sin namespace. **Contrastar con la plantilla real del portal** |
 | P2 | La tabla del §3 dice `documento`; la figura 1 y el §4 dicen `numeroDocumento` | Usa `numeroDocumento` |
 | P3 | Formato del campo `internet` (Booleano) sin definir | No lo emite (es opcional) |
-| P4 | No hay tabla de municipios INE ni de países | INE: solo formato (5 dígitos). Países: lista ISO 3166-1 (norma citada por el PDF), revisar vigencia |
+| P4 | No hay tabla de municipios INE ni de países | INE: formato (5 dígitos) y, si se añade el fichero oficial del INE, autocompletado y avisos ([ver arriba](#códigos-de-municipio-ine-autocompletado-sin-red)). Países: lista ISO 3166-1 (norma citada por el PDF), revisar vigencia |
 | P5 | El PDF no tiene «código de arrendador» | Dato interno opcional, **no se exporta** |
 | P6 | «Mayor de edad» sin definir | 18 años a la fecha de entrada |
 | P7 | `parentesco` es un solo campo por persona sin decir a qué menor se refiere | Se informa en el adulto acompañante; con varios menores y parentescos distintos, aviso |
@@ -102,12 +139,13 @@ Fuente única de verdad: [`docs/oficial/Instrucciones.pdf`](docs/oficial/Instruc
 | P10 | Formato exacto del soporte y de pasaportes por país | Soporte alfanumérico ≤ 9. Pasaporte por país **orientativo** (aviso, nunca bloquea) |
 | P12 | Cómputo de las 24 h y de los 3 años (viene del RD, no del PDF) | 24 h desde la entrada prevista; 3 años desde la salida. Confirmar con asesoría |
 | P14 | Subida al portal y errores que devuelve el sistema | Fuera de alcance: la subida es manual |
+| P15 | El PDF dice «código INE, 5 dígitos» pero no si incluye el dígito de control del INE | Usa CPRO (2) + CMUN (3), sin el dígito de control. Confirmar con el portal |
 
 Además: el «canal de reserva» y la habitación son datos internos y no se exportan; los NIF que empiezan por K, L o M se aceptan por formato sin verificar el control; **no se ha podido probar el fichero contra el portal real**.
 
 ## Limitaciones conocidas de esta versión
 
-- **Traducciones** (francés, alemán, italiano, portugués): hechas con ayuda de IA y comprobadas por pruebas (claves y marcadores completos), pero **sin revisión nativa**.
+- **Traducciones** (francés, alemán, italiano, portugués): hechas con ayuda de IA y comprobadas por pruebas (claves y marcadores completos), pero **necesitan revisión de una persona nativa de cada idioma**. En noviembre de 2026 se repasaron buscando solo errores claros y se corrigieron 5 (con prueba de regresión): FR, al pie del PDF le faltaba el verbo («n’a été envoyée»); DE, «Ausweisträger» (titular) en vez del número del propio documento, un verbo separable incompleto y una frase sin sujeto; PT, «a receção completa» → «a receção preenche-o». El italiano no tenía errores claros. Lo que solo es mejorable por estilo se ha dejado como estaba.
 - **Lector de QR:** la lectura real con cámara está probada en Chromium (alternativa jsQR). La vía `BarcodeDetector` (Android, macOS) solo está probada con simulaciones; conviene probarla en un móvil Android real.
 - **PDF del huésped:** solo alfabeto latino (WinAnsi). Con otros alfabetos la app avisa y ofrece imprimir.
 - **`npm audit`:** quedan avisos moderados y bajos en herramientas de desarrollo (ESLint, typescript-eslint, vite-plugin-pwa), no en el código que llega al navegador; npm solo propone bajar a versiones antiguas, así que se vigilan hasta que haya versiones corregidas.
@@ -131,12 +169,14 @@ npm run e2e        # Playwright: flujo completo en Chromium real + guardia de «
 npm run lint       # ESLint (incluye jsx-a11y)
 npm run typecheck  # tsc estricto
 npm run build      # build de producción (PWA)
+npm run ine:importar -- docs/oficial/ine/<fichero del INE>   # relación de municipios → src/oficial/ine/
+node scripts/generar-iconos.ts   # regenera los iconos PNG de la PWA desde el diseño del SVG
 VITE_DEMO=true npm run build   # build de la demo con datos ficticios
 ```
 
-Estructura: `src/oficial` (tablas del PDF) · `src/validators` · `src/exportador` (módulo aislado) · `src/crypto` · `src/storage` (IndexedDB cifrado, purga, copias) · `src/huesped` (enlace, código de envío, ficha imprimible y PDF) · `src/qr` (lector) · `src/i18n` (un fichero por idioma) · `src/ui` · `e2e` (Playwright) · `docs/oficial`.
+Estructura: `src/oficial` (tablas del PDF; `src/oficial/ine`, relaciones de municipios generadas) · `src/ine` (búsqueda y estado de códigos INE) · `scripts/` (importador del INE) · `src/validators` · `src/exportador` (módulo aislado) · `src/crypto` · `src/storage` (IndexedDB cifrado, purga, copias) · `src/huesped` (enlace, código de envío, ficha imprimible y PDF) · `src/qr` (lector) · `src/i18n` (un fichero por idioma) · `src/ui` · `e2e` (Playwright) · `docs/oficial`.
 
-**Pruebas end-to-end** (`e2e/`, sobre el build de producción con su CSP): (1) flujo completo: crear reserva → enlace → ficha en un móvil emulado (en francés) y descarga del PDF → **recepción lee el QR con la cámara** (Chromium con una cámara falsa que muestra el QR) → parte completo → exportar → XML comprobado con `DOMParser`; (2) la demo en móvil: la lista no se mueve y cada «Abrir» abre su reserva; (3) recorrido por todas las pantallas y los 6 idiomas. Una **guardia automática** hace fallar cualquier prueba si la página intenta una petición a otro origen o el navegador informa de una violación de la CSP, y una prueba de control demuestra que la guardia sí lo detecta.
+**Pruebas end-to-end** (`e2e/`, sobre el build de producción con su CSP): (1) flujo completo: crear reserva → elegir el municipio en el autocompletado → enlace → ficha en un móvil emulado (en francés) y descarga del PDF → **recepción lee el QR con la cámara** (Chromium con una cámara falsa que muestra el QR) → parte completo → exportar → XML comprobado con `DOMParser`; (2) la demo en móvil: la lista no se mueve y cada «Abrir» abre su reserva; (3) recorrido por todas las pantallas y los 6 idiomas; (4) **PWA**: Chrome no encuentra ningún error de instalación, la app funciona **con la red cortada** tras la primera carga (recepción, municipios, exportación, enlace del huésped y presentación) y, tras **desplegar una versión nueva** en un servidor de prueba, aparece el aviso y «Actualizar ahora» la activa; (5) **presentación**: axe en navegador real (con contraste) en escritorio y móvil, sin JavaScript, menos de 40 kB sin contar imágenes, y selector de idioma. Una **guardia automática** hace fallar cualquier prueba si la página intenta una petición a otro origen o el navegador informa de una violación de la CSP, y una prueba de control demuestra que la guardia sí lo detecta.
 
 ## Cómo se construyó
 
@@ -150,7 +190,7 @@ Construido con **Claude Code** (agente de IA de Anthropic) bajo la dirección de
 
 ## English summary
 
-**Registro de viajeros** is a free, local-first PWA for small Spanish accommodations (hostels, guest houses) that must report every guest to the Ministry of the Interior (SES.Hospedajes, Royal Decree 933/2021) within 24 hours and keep the data for 3 years. It needs **no server**: guests fill in their details on their phone (form in Spanish, English, French, German, Italian and Portuguese, WCAG 2.2 AA-oriented), producing an **encrypted code** (QR/text/file) that reception imports by **scanning the QR with the camera** (native BarcodeDetector or bundled jsQR, no network); guests can also download a readable, bilingual **PDF/printout** of their details as a pre-check-in for places that already use a property-management system; reception sees a daily list with each report's status and a 24-hour warning; and an isolated **exporter** generates the bulk-upload XML defined in the official document (`docs/oficial/Instrucciones.pdf`, v1.1.0) and validates it twice before it can be downloaded. End-to-end tests (Playwright) cover the whole flow and fail if the page makes any request to another origin. Data lives in IndexedDB, encrypted with AES-GCM using a PBKDF2-derived key; records are auto-purged 3 years after check-out (with prior warning); encrypted backups are supported. No analytics, no external calls.
+**Registro de viajeros** is a free, local-first PWA for small Spanish accommodations (hostels, guest houses) that must report every guest to the Ministry of the Interior (SES.Hospedajes, Royal Decree 933/2021) within 24 hours and keep the data for 3 years. It needs **no server**: guests fill in their details on their phone (form in Spanish, English, French, German, Italian and Portuguese, WCAG 2.2 AA-oriented), producing an **encrypted code** (QR/text/file) that reception imports by **scanning the QR with the camera** (native BarcodeDetector or bundled jsQR, no network); guests can also download a readable, bilingual **PDF/printout** of their details as a pre-check-in for places that already use a property-management system; reception sees a daily list with each report's status and a 24-hour warning; and an isolated **exporter** generates the bulk-upload XML defined in the official document (`docs/oficial/Instrucciones.pdf`, v1.1.0) and validates it twice before it can be downloaded. End-to-end tests (Playwright) cover the whole flow and fail if the page makes any request to another origin. It is an installable PWA that keeps working offline after the first load and shows a "new version available" prompt instead of reloading by surprise. Reception gets an offline municipality → INE code autocomplete, fed **only** by the official INE file once it is added to `docs/oficial/ine/` (an import script and a guard test make sure no code comes from anywhere else; until then the demo uses a clearly fictitious sample). A static, JavaScript-free presentation page for owners lives at `/presentacion/` (Spanish) and `/presentacion/en/` (English). Data lives in IndexedDB, encrypted with AES-GCM using a PBKDF2-derived key; records are auto-purged 3 years after check-out (with prior warning); encrypted backups are supported. No analytics, no external calls.
 
 **This is NOT an official tool and does NOT submit anything to the Ministry.** You must upload the file yourself, and the establishment remains solely responsible for reporting on time. Items the official document does not specify (XML namespace, `internet` field format, INE municipality table, "arrendador" code, etc.) are **not invented**: they are marked `PENDIENTE-OFICIAL` in code and listed above. The file has not been tested against the live portal.
 

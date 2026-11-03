@@ -20,7 +20,8 @@ const iso = (d: Date) => {
 const dia = (d: Date) => iso(d).slice(0, 10)
 const mas = (base: Date, horas: number) => new Date(base.getTime() + horas * 3_600_000)
 
-const madrid = { direccion: 'Calle Inventada 12, 3ºB', codigoMunicipio: '28079', nombreMunicipio: 'Madrid', codigoPostal: '28004', pais: 'ESP' }
+// Municipio de la muestra FICTICIA del INE de la demo (provincia 99, que no existe): ver src/demo/ine/
+const domicilioDemo = { direccion: 'Calle Inventada 12, 3ºB', codigoMunicipio: '99001', nombreMunicipio: 'Villaficticia', codigoPostal: '99001', pais: 'ESP' }
 
 function adulto(id: string, nombre: string, ap1: string, ap2: string, n: number, extra: Partial<Viajero> = {}): Viajero {
   return {
@@ -34,7 +35,7 @@ function adulto(id: string, nombre: string, ap1: string, ap2: string, n: number,
     fechaNacimiento: '1986-03-14',
     nacionalidad: 'ESP',
     sexo: 'M',
-    direccion: madrid,
+    direccion: domicilioDemo,
     telefono: '+34 600 000 001',
     correo: `${nombre.toLowerCase()}@example.com`,
     origen: 'recepcion',
@@ -132,7 +133,7 @@ export function crearDatosDemo(ahora: Date): { establecimiento: Establecimiento;
           fechaNacimiento: '2016-07-20',
           nacionalidad: 'ESP',
           sexo: 'H',
-          direccion: madrid,
+          direccion: domicilioDemo,
           telefono: '+34 600 000 001',
           responsable: { adultoId: 'd7a', parentesco: 'PM' },
           origen: 'huesped',
@@ -155,7 +156,7 @@ export function crearDatosDemo(ahora: Date): { establecimiento: Establecimiento;
       codigoArrendador: 'DEMO-ARR',
       nombre: 'Hostal Demo (ficticio)',
       tipo: 'HOSTAL',
-      direccion: { direccion: 'Calle Inventada 7', codigoMunicipio: '28079', nombreMunicipio: 'Madrid', codigoPostal: '28004', pais: 'ESP' },
+      direccion: { direccion: 'Calle Inventada 7', codigoMunicipio: '99002', nombreMunicipio: 'Aldea de Prueba', codigoPostal: '99002', pais: 'ESP' },
     },
     reservas,
   }
