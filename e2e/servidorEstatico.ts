@@ -12,10 +12,15 @@ const TIPOS: Record<string, string> = {
   '.webmanifest': 'application/manifest+json',
 }
 
-/** Servidor estático mínimo que lee cada fichero del disco en cada petición (para simular un despliegue nuevo). */
-export async function servirCarpeta(carpeta: string, puerto: number): Promise<Server> {
+/**
+ * Servidor estático mínimo que lee cada fichero del disco en cada petición (para simular un despliegue nuevo).
+ * Como GitHub Pages: «/carpeta/» sirve «/carpeta/index.html» y la web puede vivir bajo un prefijo («/registro-viajeros/»).
+ */
+export async function servirCarpeta(carpeta: string, puerto: number, prefijo = '/'): Promise<Server> {
   const servidor = createServer(async (req, res) => {
-    const ruta = decodeURIComponent(new URL(req.url ?? '/', 'http://x').pathname)
+    const completa = decodeURIComponent(new URL(req.url ?? '/', 'http://x').pathname)
+    if (!completa.startsWith(prefijo)) return void res.writeHead(404).end()
+    const ruta = `/${completa.slice(prefijo.length)}`
     const fichero = normalize(join(carpeta, ruta.endsWith('/') ? `${ruta}index.html` : ruta))
     if (!fichero.startsWith(carpeta)) return void res.writeHead(403).end()
     try {

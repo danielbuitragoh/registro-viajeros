@@ -14,7 +14,8 @@ export default defineConfig({
   outputDir: 'test-results',
   use: { baseURL: 'http://localhost:4173', trace: 'retain-on-failure', locale: 'es-ES', timezoneId: 'Europe/Madrid' },
   webServer: {
-    command: 'npm run build && npx vite preview --port 4173 --strictPort',
+    // Además, un build con la misma base que GitHub Pages (/registro-viajeros/) para las pruebas del service worker
+    command: 'npm run build && VITE_BASE=/registro-viajeros/ npx vite build --outDir dist-pages --emptyOutDir && npx vite preview --port 4173 --strictPort',
     env: { VITE_DEMO: 'true' },
     url: 'http://localhost:4173',
     reuseExistingServer: false,
