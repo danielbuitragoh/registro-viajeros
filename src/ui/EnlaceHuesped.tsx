@@ -4,6 +4,7 @@ import { codificarEnlace, crearDatosEnlace, generarClaveEnlace, type Idioma } fr
 import { descifrarFicha, reservaDeCodigo } from '../huesped/ficha'
 import { Qr } from './Qr'
 import { Selector } from './campos'
+import { IDIOMAS, t } from '../i18n/textos'
 
 export function EnlaceHuesped({ reserva, establecimiento, onGuardar }: { reserva: Reserva; establecimiento: Establecimiento; onGuardar: (r: Reserva) => Promise<void> }) {
   const [idioma, setIdioma] = useState<Idioma>('es')
@@ -48,7 +49,7 @@ export function EnlaceHuesped({ reserva, establecimiento, onGuardar }: { reserva
         </button>
       ) : (
         <>
-          <Selector id="idioma-enlace" etiqueta="Idioma inicial del formulario" valor={idioma} onCambio={(v) => setIdioma(v as Idioma)} opciones={[{ valor: 'es', texto: 'Español' }, { valor: 'en', texto: 'English' }]} />
+          <Selector id="idioma-enlace" etiqueta="Idioma inicial del formulario" valor={idioma} onCambio={(v) => setIdioma(v as Idioma)} opciones={IDIOMAS.map((l) => ({ valor: l, texto: t(l, 'idioma.nombre') }))} />
           <div className="campo">
             <label htmlFor="url-enlace">Enlace para el huésped</label>
             <textarea id="url-enlace" readOnly rows={3} value={url} onFocus={(e) => e.currentTarget.select()} />

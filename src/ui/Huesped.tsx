@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { Viajero } from '../domain/tipos'
 import { cifrarFicha } from '../huesped/ficha'
 import type { DatosEnlace, Idioma } from '../huesped/enlace'
-import { t, type ClaveTexto } from '../i18n/textos'
+import { IDIOMAS, esIdioma, idiomaDelNavegador, t, type ClaveTexto } from '../i18n/textos'
 import { edadEn, esFechaValida, soloFecha } from '../validators/fechas'
 import { FormularioViajero, viajeroVacio } from './FormularioViajero'
 import { Qr } from './Qr'
@@ -55,13 +55,11 @@ export function Huesped({ datos }: { datos: DatosEnlace }) {
   return (
     <>
       <a className="saltar" href="#contenido">
-        {idioma === 'es' ? 'Saltar al contenido' : 'Skip to content'}
+        {tr('comun.saltar')}
       </a>
       <header className="cabecera">
         <p className="marca-app">{tr('app.titulo')}</p>
-        <button type="button" className="secundario" lang={idioma === 'es' ? 'en' : 'es'} onClick={() => setIdioma(idioma === 'es' ? 'en' : 'es')}>
-          {tr('idioma.cambiar')}
-        </button>
+        <SelectorIdioma idioma={idioma} onCambio={setIdioma} />
       </header>
       <main id="contenido" tabIndex={-1} className="pagina-huesped" lang={idioma}>
         {pantalla.tipo === 'inicio' && (
@@ -252,8 +250,28 @@ function Resultado({ datos, viajeros, idioma, onVolver }: { datos: DatosEnlace; 
   )
 }
 
+/** Selector de idioma: cada opción se nombra en su propia lengua y lleva su atributo lang (WCAG 3.1.2). */
+function SelectorIdioma({ idioma, onCambio }: { idioma: Idioma; onCambio: (i: Idioma) => void }) {
+  return (
+    <div className="selector-idioma">
+      <label htmlFor="idioma-huesped">
+        <span aria-hidden="true">🌐 </span>
+        {t(idioma, 'idioma.etiqueta')}
+        {idioma !== 'en' && <span lang="en"> / Language</span>}
+      </label>
+      <select id="idioma-huesped" value={idioma} onChange={(e) => esIdioma(e.target.value) && onCambio(e.target.value)}>
+        {IDIOMAS.map((l) => (
+          <option key={l} value={l} lang={l}>
+            {t(l, 'idioma.nombre')}
+          </option>
+        ))}
+      </select>
+    </div>
+  )
+}
+
 export function EnlaceInvalido() {
-  const idioma: Idioma = typeof navigator !== 'undefined' && navigator.language.startsWith('es') ? 'es' : 'en'
+  const idioma = idiomaDelNavegador()
   return (
     <main className="pagina-huesped" id="contenido" lang={idioma}>
       <h1>{t(idioma, 'h.enlace_invalido.titulo')}</h1>

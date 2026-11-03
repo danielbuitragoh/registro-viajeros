@@ -1,8 +1,8 @@
 import { useMemo, useRef, useState } from 'react'
 import type { Direccion, Incidencia, Viajero } from '../domain/tipos'
-import { PARENTESCO, SEXO, TIPO_DOCUMENTO } from '../oficial/codigos'
 import { alfa3Espana, paisesOrdenados } from '../oficial/paises'
 import { t } from '../i18n/textos'
+import { opcionesCodigo } from '../i18n/codigos'
 import { etiquetaCampo, mensajeIncidencia } from '../i18n/mensajes'
 import type { Idioma } from '../huesped/enlace'
 import { edadEn, esFechaValida } from '../validators/fechas'
@@ -114,9 +114,9 @@ export function FormularioViajero(props: FormularioViajeroProps) {
   const itemsResumen = intentado ? errores.map((i) => ({ id: fid(i.campo), texto: `${etiquetaCampo(i.campo, idioma)}: ${mensajeIncidencia(i, idioma)}` })) : []
 
   const paises = useMemo(() => paisesOrdenados(idioma).map((p) => ({ valor: p.alfa3, texto: p.nombre })), [idioma])
-  const tipoDocs = Object.entries(TIPO_DOCUMENTO).map(([k, e]) => ({ valor: k, texto: e[idioma] }))
-  const sexos = Object.entries(SEXO).map(([k, e]) => ({ valor: k, texto: e[idioma] }))
-  const parentescos = Object.entries(PARENTESCO).map(([k, e]) => ({ valor: k, texto: e[idioma] }))
+  const tipoDocs = opcionesCodigo('TIPO_DOCUMENTO', idioma)
+  const sexos = opcionesCodigo('SEXO', idioma)
+  const parentescos = opcionesCodigo('PARENTESCO', idioma)
   const marca = (obligatorio: boolean) => (obligatorio ? undefined : tr('comun.opcional').replace(/[()]/g, ''))
   const esp = v.direccion.pais === alfa3Espana
 

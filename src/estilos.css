@@ -85,6 +85,9 @@ main:focus { outline: none; }
 .nav a:hover { background: var(--info-fondo); }
 .nav a[aria-current='page'] { background: var(--primario); color: var(--sobre-primario); }
 .cabecera > button { margin-left: auto; }
+.selector-idioma { margin-left: auto; display: flex; align-items: center; gap: 0.5rem; }
+.selector-idioma label { font-weight: 600; }
+.selector-idioma select { width: auto; min-width: 9rem; }
 
 main { max-width: 62rem; margin: 0 auto; padding: 0.5rem 1rem 3rem; }
 .pagina-huesped { max-width: 40rem; }

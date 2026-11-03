@@ -102,7 +102,7 @@ describe('Modo huésped — flujo completo', () => {
     const user = userEvent.setup()
     render(<Huesped datos={{ ...datos, l: 'de' }} />)
     await user.click(screen.getByRole('button', { name: 'Starten' }))
-    await user.click(screen.getByRole('button', { name: 'Reisenden hinzufügen' }))
+    await user.click(screen.getByRole('button', { name: 'Person hinzufügen' }))
     expect(screen.getByLabelText('Vorname')).toBeInTheDocument()
     expect(within(screen.getByLabelText(/Ausweisart/)).getByRole('option', { name: 'Reisepass' })).toHaveAttribute('value', 'PAS')
     expect(within(screen.getAllByLabelText(/Staatsangehörigkeit/)[0] as HTMLElement).getByRole('option', { name: 'Deutschland' })).toHaveAttribute('value', 'DEU')
