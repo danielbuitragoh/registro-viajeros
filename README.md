@@ -145,7 +145,7 @@ Además: el «canal de reserva» y la habitación son datos internos y no se exp
 
 ## Limitaciones conocidas de esta versión
 
-- **Traducciones** (francés, alemán, italiano, portugués): hechas con ayuda de IA y comprobadas por pruebas (claves y marcadores completos), pero **sin revisión nativa**.
+- **Traducciones** (francés, alemán, italiano, portugués): hechas con ayuda de IA y comprobadas por pruebas (claves y marcadores completos), pero **necesitan revisión de una persona nativa de cada idioma**. En noviembre de 2026 se repasaron buscando solo errores claros y se corrigieron 5 (con prueba de regresión): FR, al pie del PDF le faltaba el verbo («n’a été envoyée»); DE, «Ausweisträger» (titular) en vez del número del propio documento, un verbo separable incompleto y una frase sin sujeto; PT, «a receção completa» → «a receção preenche-o». El italiano no tenía errores claros. Lo que solo es mejorable por estilo se ha dejado como estaba.
 - **Lector de QR:** la lectura real con cámara está probada en Chromium (alternativa jsQR). La vía `BarcodeDetector` (Android, macOS) solo está probada con simulaciones; conviene probarla en un móvil Android real.
 - **PDF del huésped:** solo alfabeto latino (WinAnsi). Con otros alfabetos la app avisa y ofrece imprimir.
 - **`npm audit`:** quedan avisos moderados y bajos en herramientas de desarrollo (ESLint, typescript-eslint, vite-plugin-pwa), no en el código que llega al navegador; npm solo propone bajar a versiones antiguas, así que se vigilan hasta que haya versiones corregidas.
