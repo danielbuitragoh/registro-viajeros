@@ -162,7 +162,7 @@ export function FormularioViajero(props: FormularioViajeroProps) {
 
   return (
     <form onSubmit={enviar} noValidate aria-labelledby={`${pref}-titulo`} lang={idioma}>
-      <h2 id={`${pref}-titulo`}>{tr('h.viajero.titulo', { n: numero })}</h2>
+      <h1 id={`${pref}-titulo`}>{tr('h.viajero.titulo', { n: numero })}</h1>
       <ResumenErrores refResumen={resumenRef} titulo={itemsResumen.length === 1 ? tr('f.resumen_errores_uno') : tr('f.resumen_errores', { n: itemsResumen.length })} items={itemsResumen} />
 
       <Grupo leyenda={tr('f.seccion.datos')}>

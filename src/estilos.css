@@ -103,7 +103,7 @@ main { max-width: var(--ancho-max); margin: 0 auto; padding: var(--e-2) var(--e-
 .migas [aria-current='page'] { color: var(--texto-suave); }
 
 /* ---------- Formularios ---------- */
-fieldset { border: 1px solid var(--borde); border-radius: var(--radio); margin: var(--e-5) 0; padding: var(--e-2) var(--e-4) var(--e-4); background: var(--superficie); }
+fieldset { min-width: 0; /* por defecto no encoge por debajo de su contenido: desbordaba en el móvil */ border: 1px solid var(--borde); border-radius: var(--radio); margin: var(--e-5) 0; padding: var(--e-2) var(--e-4) var(--e-4); background: var(--superficie); }
 legend { font-weight: 700; padding: 0 var(--e-2); font-size: var(--fs-l); }
 .campo { margin: var(--e-4) 0; }
 .campo label { display: block; font-weight: 600; margin-bottom: var(--e-1); }

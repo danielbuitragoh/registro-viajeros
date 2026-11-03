@@ -94,12 +94,13 @@ export function Recepcion() {
       <a className="saltar" href="#contenido">
         Saltar al contenido
       </a>
-      {esDemo && (
-        <p className="banner-demo" role="note">
-          DEMO con datos ficticios · Nada sale de tu navegador · Contraseña de la demo: <code>demo-hostal-2026</code>
-        </p>
-      )}
       <header className="cabecera">
+        {/* Dentro de la cabecera: todo el contenido queda en una región (axe: region) */}
+        {esDemo && (
+          <p className="banner-demo" role="note">
+            DEMO con datos ficticios · Nada sale de tu navegador · Contraseña de la demo: <code>demo-hostal-2026</code>
+          </p>
+        )}
         <div className="cabecera-dentro">
           <p className="marca-app">
             <Logo />

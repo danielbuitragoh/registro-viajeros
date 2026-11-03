@@ -386,7 +386,7 @@ function Copias() {
     }
   }
   return (
-    <section aria-label="Copia de seguridad cifrada">
+    <div>
       <p>Los datos solo viven en este dispositivo. Haz una copia al menos una vez por semana y guárdala fuera de él: es la única forma de recuperarlos si el equipo se estropea o se pierde, o de pasarlos a otro.</p>
       <DescargarCopia />
       <FrecuenciaCopia />
@@ -406,7 +406,7 @@ function Copias() {
         </div>
         <Mensaje msg={msg} />
       </form>
-    </section>
+    </div>
   )
 }
 
@@ -415,7 +415,7 @@ function Conservacion() {
   const [msg, setMsg] = useState<string>()
   const p = app.purga
   return (
-    <section aria-label="Conservación y purga">
+    <div>
       <p>
         Los datos de cada reserva se conservan <strong>{ANIOS_CONSERVACION} años desde la fecha de salida</strong> y después se eliminan automáticamente al desbloquear la aplicación. Se avisa {DIAS_AVISO_PURGA} días antes.
       </p>
@@ -450,7 +450,7 @@ function Conservacion() {
           {msg}
         </p>
       )}
-    </section>
+    </div>
   )
 }
 
@@ -469,7 +469,7 @@ function ZonaPeligro() {
   const app = useApp()
   const [texto, setTexto] = useState('')
   return (
-    <section aria-label="Borrar todos los datos de este dispositivo">
+    <div>
       <p>Elimina la base de datos cifrada, la configuración y todas las reservas. No se puede deshacer. Haz antes una copia de seguridad.</p>
       <Entrada id="borrar-confirma" etiqueta="Escribe BORRAR para confirmar" valor={texto} onCambio={setTexto} />
       <div className="acciones">
@@ -477,6 +477,6 @@ function ZonaPeligro() {
           Borrar todo
         </button>
       </div>
-    </section>
+    </div>
   )
 }
