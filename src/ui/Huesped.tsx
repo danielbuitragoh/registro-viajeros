@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { Viajero } from '../domain/tipos'
 import { cifrarFicha } from '../huesped/ficha'
+import { contenidoFicha, type ContenidoFicha } from '../huesped/fichaImprimible'
+import { pdfFicha } from '../huesped/fichaPdf'
 import type { DatosEnlace, Idioma } from '../huesped/enlace'
 import { IDIOMAS, esIdioma, idiomaDelNavegador, t, type ClaveTexto } from '../i18n/textos'
 import { edadEn, esFechaValida, soloFecha } from '../validators/fechas'
@@ -200,19 +202,31 @@ function Resultado({ datos, viajeros, idioma, onVolver }: { datos: DatosEnlace; 
       ;(document.getElementById('codigo-envio') as HTMLTextAreaElement | null)?.select()
     }
   }
-  function descargar() {
-    if (!codigo) return
-    const url = URL.createObjectURL(new Blob([codigo], { type: 'text/plain;charset=utf-8' }))
+  const contenido = useMemo(() => contenidoFicha(datos, viajeros, idioma), [datos, viajeros, idioma])
+  const [sustituidos, setSustituidos] = useState(false)
+
+  function guardarArchivo(parte: BlobPart, tipo: string, extension: string) {
+    const url = URL.createObjectURL(new Blob([parte], { type: tipo }))
     const a = document.createElement('a')
     a.href = url
-    a.download = `ficha-viajeros-${datos.rid.slice(0, 8)}.txt`
+    a.download = `ficha-viajeros-${datos.rid.slice(0, 8)}.${extension}`
     a.click()
-    URL.revokeObjectURL(url)
+    setTimeout(() => URL.revokeObjectURL(url), 1000)
+  }
+  function descargar() {
+    if (codigo) guardarArchivo(codigo, 'text/plain;charset=utf-8', 'txt')
+  }
+  function descargarPdf() {
+    if (!codigo) return
+    const { bytes, sustituidos } = pdfFicha(contenido, codigo)
+    setSustituidos(sustituidos)
+    guardarArchivo(bytes as Uint8Array<ArrayBuffer>, 'application/pdf', 'pdf')
   }
   const puedeCompartir = typeof navigator !== 'undefined' && typeof navigator.share === 'function'
 
   return (
-    <section aria-labelledby="t-codigo">
+    <>
+    <section aria-labelledby="t-codigo" className="no-imprimir">
       <h1 id="t-codigo">{tr('h.resultado.titulo')}</h1>
       <p>{tr('h.resultado.texto')}</p>
       {error && <p className="mensaje mensaje-error" role="alert">{error}</p>}
@@ -239,6 +253,21 @@ function Resultado({ datos, viajeros, idioma, onVolver }: { datos: DatosEnlace; 
             {copiado ? tr('h.resultado.copiado') : ''}
           </p>
           {codigo.length <= MAX_CARACTERES_QR ? <Qr texto={codigo} alt={tr('h.resultado.qr')} nivel="L" /> : <p className="ayuda">{tr('h.resultado.qr_grande')}</p>}
+
+          <div className="tarjeta tarjeta-info">
+            <p>{tr('h.resultado.ficha_ayuda')}</p>
+            <div className="acciones">
+              <button type="button" className="secundario" onClick={descargarPdf}>
+                {tr('h.resultado.pdf')}
+              </button>
+              <button type="button" className="secundario" onClick={() => window.print()}>
+                {tr('h.resultado.imprimir')}
+              </button>
+            </div>
+            <p role="status" className="ayuda">
+              {sustituidos ? tr('h.ficha.sustituidos') : ''}
+            </p>
+          </div>
         </>
       )}
       <div className="acciones">
@@ -247,6 +276,42 @@ function Resultado({ datos, viajeros, idioma, onVolver }: { datos: DatosEnlace; 
         </button>
       </div>
     </section>
+    {codigo && <HojaImpresion contenido={contenido} codigo={codigo} />}
+    </>
+  )
+}
+
+/** Hoja para imprimir (o «Guardar como PDF» del navegador): oculta en pantalla, es lo único que sale en papel. */
+function HojaImpresion({ contenido, codigo }: { contenido: ContenidoFicha; codigo: string }) {
+  const tabla = (filas: ContenidoFicha['cabecera']) => (
+    <table>
+      <tbody>
+        {filas.map((f) => (
+          <tr key={f.etiqueta}>
+            <th scope="row">{f.etiqueta}</th>
+            <td>{f.valor}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  )
+  return (
+    <div className="hoja-impresion" aria-hidden="true">
+      <h1>{contenido.titulo}</h1>
+      {tabla(contenido.cabecera)}
+      {contenido.viajeros.map((v) => (
+        <section key={v.titulo}>
+          <h2>{v.titulo}</h2>
+          {tabla(v.filas)}
+        </section>
+      ))}
+      <section className="hoja-qr">
+        <h2>{contenido.tituloQr}</h2>
+        <p>{contenido.ayudaQr}</p>
+        <Qr texto={codigo} alt="" nivel="L" />
+      </section>
+      <p className="hoja-pie">{contenido.pie}</p>
+    </div>
   )
 }
 

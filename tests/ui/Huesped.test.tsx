@@ -111,7 +111,8 @@ describe('Modo huésped — flujo completo', () => {
   it('pre-check-in: la ficha se puede descargar en PDF o imprimir (legible, bilingüe, sin servidor)', async () => {
     const user = userEvent.setup()
     const crearUrl = vi.fn((_: Blob) => 'blob:ficha')
-    vi.stubGlobal('URL', Object.assign(URL, { createObjectURL: crearUrl, revokeObjectURL: vi.fn() }))
+    URL.createObjectURL = crearUrl
+    URL.revokeObjectURL = vi.fn()
     const imprimir = vi.spyOn(window, 'print').mockImplementation(() => undefined)
     const clicEnlace = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => undefined)
     render(<Huesped datos={datos} />)
@@ -123,7 +124,11 @@ describe('Modo huésped — flujo completo', () => {
     await user.click(screen.getByRole('button', { name: 'Descargar ficha en PDF' }))
     const blob = crearUrl.mock.calls.at(-1)?.[0] as Blob
     expect(blob.type).toBe('application/pdf')
-    const cabecera = new TextDecoder().decode((await blob.arrayBuffer()).slice(0, 8))
+    const cabecera = await new Promise<string>((ok) => {
+      const fr = new FileReader()
+      fr.onload = () => ok(String(fr.result).slice(0, 8))
+      fr.readAsText(blob.slice(0, 8))
+    })
     expect(cabecera).toBe('%PDF-1.4')
     expect(clicEnlace).toHaveBeenCalled()
 
@@ -135,7 +140,6 @@ describe('Modo huésped — flujo completo', () => {
     expect(hoja).toHaveTextContent('12345678Z')
     expect(screen.getByText(/la ficha NO está cifrada/)).toBeInTheDocument()
     vi.restoreAllMocks()
-    vi.unstubAllGlobals()
   })
 
   it('se puede terminar con menos viajeros de los de la reserva (recepción lo revisará)', async () => {

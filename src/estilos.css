@@ -199,3 +199,19 @@ details summary { cursor: pointer; min-height: 48px; display: flex; align-items:
 @media (forced-colors: active) {
   .chip, .tarjeta, fieldset { border: 2px solid CanvasText; }
 }
+
+/* Ficha del huésped para imprimir: oculta en pantalla; al imprimir, solo sale ella */
+.hoja-impresion { display: none; }
+@media print {
+  .cabecera, .saltar, .no-imprimir, .banner-demo { display: none !important; }
+  main { max-width: none; padding: 0; }
+  .hoja-impresion { display: block; color: #000; font-size: 11pt; }
+  .hoja-impresion h1 { font-size: 16pt; margin: 0 0 0.5rem; }
+  .hoja-impresion h2 { font-size: 13pt; margin: 1rem 0 0.25rem; border-bottom: 1.5pt solid #000; break-after: avoid; }
+  .hoja-impresion table { width: 100%; border-collapse: collapse; }
+  .hoja-impresion th, .hoja-impresion td { text-align: left; vertical-align: top; padding: 3pt 4pt; border-bottom: 0.5pt solid #bbb; }
+  .hoja-impresion th { width: 38%; font-size: 9.5pt; }
+  .hoja-impresion section { break-inside: avoid; }
+  .hoja-qr .qr { max-width: 7cm; border: 0; }
+  .hoja-pie { font-size: 8pt; color: #444; margin-top: 1rem; }
+}
