@@ -2,6 +2,8 @@
 
 Registro de viajeros **libre, sencillo y local-first** para alojamientos pequeños en España (pensiones, pisos turísticos, casas rurales, hostales…). Prepara y valida el fichero de **alta masiva** de SES.Hospedajes sin servidor, sin cuentas y sin que nadie más tenga tus datos.
 
+Idea, especificación, revisión y pruebas: Daniel Buitrago ([@danielbuitragoh](https://github.com/danielbuitragoh)). Código generado con Claude Code bajo su dirección.
+
 > ## ⚠️ Aviso importante
 > **Esta es una herramienta no oficial.** No está afiliada ni respaldada por el Ministerio del Interior. **No envía nada al Ministerio**: genera y valida un fichero que **tú debes subir** al portal SES.Hospedajes. **El establecimiento sigue siendo el único responsable** de comunicar los datos dentro de plazo y de que sean correctos. Lee la sección [Qué está validado y qué no](#qué-está-validado-contra-el-documento-oficial-y-qué-no) antes de usarla en producción, y contrasta siempre el primer fichero con la plantilla real del portal.
 
@@ -216,7 +218,7 @@ Estructura: `src/diseno` (tokens del sistema de diseño y tema claro/oscuro) · 
 
 ## Cómo se construyó
 
-Construido con **Claude Code** (agente de IA de Anthropic) bajo la dirección de **Daniel Buitrago**: la **idea, la especificación y la revisión son de Daniel**; el agente leyó el documento oficial, escribió el código y las pruebas y lo verificó. Método: los validadores, el exportador, el cifrado y la purga se hicieron con **TDD** (commits `test:` primero, luego `feat:`); la interfaz se probó después, con pruebas de componentes y una prueba de humo en navegador real. Revisar un código escrito por un agente sigue siendo imprescindible: en el camino, una prueba de mutación manual detectó una laguna real (dos letras de la tabla del DNI no estaban cubiertas) que se corrigió.
+Construido con **Claude Code** (agente de IA de Anthropic) bajo la dirección de **Daniel Buitrago**: la **idea, la especificación, la revisión y las pruebas son de Daniel**; el agente leyó el documento oficial y generó el código y las pruebas automáticas, y los verificó. Método: los validadores, el exportador, el cifrado y la purga se hicieron con **TDD** (commits `test:` primero, luego `feat:`); la interfaz se probó después, con pruebas de componentes y una prueba de humo en navegador real. Revisar un código escrito por un agente sigue siendo imprescindible: en el camino, una prueba de mutación manual detectó una laguna real (dos letras de la tabla del DNI no estaban cubiertas) que se corrigió.
 
 ## Licencia
 
@@ -230,4 +232,4 @@ Construido con **Claude Code** (agente de IA de Anthropic) bajo la dirección de
 
 **This is NOT an official tool and does NOT submit anything to the Ministry.** You must upload the file yourself, and the establishment remains solely responsible for reporting on time. Items the official document does not specify (XML namespace, `internet` field format, INE municipality table, "arrendador" code, etc.) are **not invented**: they are marked `PENDIENTE-OFICIAL` in code and listed above. The file has not been tested against the live portal.
 
-Built with Claude Code as the coding agent; idea, specification and review by Daniel Buitrago. MIT licensed.
+Idea, specification, review and testing: Daniel Buitrago ([@danielbuitragoh](https://github.com/danielbuitragoh)). Code generated with Claude Code under Daniel's direction. MIT licensed.
