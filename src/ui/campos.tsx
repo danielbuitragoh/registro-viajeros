@@ -9,6 +9,8 @@ interface BaseProps {
   obligatorio?: boolean
   /** Texto del indicador de obligatorio/opcional para lectores de pantalla y vista (p. ej. "obligatorio"). */
   marca?: string
+  /** Ayuda contextual desplegable «¿Qué es…?» (ver Pista). */
+  pista?: ReactNode
 }
 
 export function Mensajes({ id, ayuda, error, aviso, etiquetaError, etiquetaAviso }: { id: string; ayuda?: string; error?: string; aviso?: string; etiquetaError: string; etiquetaAviso: string }) {
@@ -82,6 +84,7 @@ export function Entrada(p: EntradaProps) {
         spellCheck={p.mayusculas ? false : undefined}
       />
       <Mensajes id={p.id} ayuda={p.ayuda} error={p.error} aviso={p.aviso} etiquetaError={p.etiquetaError ?? 'Error'} etiquetaAviso={p.etiquetaAviso ?? 'Aviso'} />
+      {p.pista}
     </div>
   )
 }
@@ -124,6 +127,7 @@ export function Selector(p: SelectorProps) {
         ))}
       </select>
       <Mensajes id={p.id} ayuda={p.ayuda} error={p.error} aviso={p.aviso} etiquetaError={p.etiquetaError ?? 'Error'} etiquetaAviso={p.etiquetaAviso ?? 'Aviso'} />
+      {p.pista}
     </div>
   )
 }

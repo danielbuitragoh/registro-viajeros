@@ -7,7 +7,7 @@ import type { DatosEnlace, Idioma } from '../huesped/enlace'
 import { IDIOMAS, esIdioma, idiomaDelNavegador, t, type ClaveTexto } from '../i18n/textos'
 import { edadEn, esFechaValida, soloFecha } from '../validators/fechas'
 import { FormularioViajero, viajeroVacio } from './FormularioViajero'
-import { Logo } from './Icono'
+import { Icono, Logo } from './Icono'
 import { Qr } from './Qr'
 
 const MAX_CARACTERES_QR = 1800
@@ -70,6 +70,7 @@ export function Huesped({ datos }: { datos: DatosEnlace }) {
         </div>
       </header>
       <main id="contenido" tabIndex={-1} className="pagina-huesped" lang={idioma}>
+        <p className="progreso-texto no-imprimir">{tr('h.paso', { n: pantalla.tipo === 'inicio' ? 1 : pantalla.tipo === 'codigo' ? 3 : 2, total: 3 })}</p>
         {pantalla.tipo === 'inicio' && (
           <section aria-labelledby="t-inicio">
             <h1 id="t-inicio">{tr('h.bienvenida.titulo')}</h1>
@@ -83,9 +84,11 @@ export function Huesped({ datos }: { datos: DatosEnlace }) {
               <h2>{tr('h.privacidad.titulo')}</h2>
               <p>{tr('h.privacidad.texto')}</p>
             </div>
-            <button type="button" className="primario" onClick={() => setPantalla({ tipo: 'lista' })}>
+            <button type="button" className="primario grande" onClick={() => setPantalla({ tipo: 'lista' })}>
               {tr('h.empezar')}
+              <Icono nombre="adelante" />
             </button>
+            <AyudaHuesped idioma={idioma} />
           </section>
         )}
 
@@ -93,7 +96,13 @@ export function Huesped({ datos }: { datos: DatosEnlace }) {
           <section aria-labelledby="t-lista">
             <h1 id="t-lista">{tr('h.resumen.titulo')}</h1>
             {viajeros.length === 0 ? (
-              <p>{tr('h.resumen.vacio')}</p>
+              <div className="vacio">
+                <Icono nombre="persona" />
+                <p>
+                  <strong>{tr('h.resumen.vacio')}</strong>
+                </p>
+                <p>{tr('h.resumen.vacio_accion', { boton: tr('h.anadir_primero') })}</p>
+              </div>
             ) : (
               <ul className="lista-tarjetas">
                 {viajeros.map((v, i) => (
@@ -117,13 +126,18 @@ export function Huesped({ datos }: { datos: DatosEnlace }) {
             )}
             {viajeros.length > 0 && viajeros.length < datos.n && <p className="ayuda">{tr('h.resumen.faltan', { n: viajeros.length, total: datos.n })}</p>}
             <div className="acciones">
-              <button type="button" className="secundario" onClick={() => setPantalla({ tipo: 'editar', id: crypto.randomUUID() })}>
+              <button type="button" className={viajeros.length === 0 ? 'primario grande' : 'secundario'} onClick={() => setPantalla({ tipo: 'editar', id: crypto.randomUUID() })}>
+                <Icono nombre="mas" />
                 {tr(viajeros.length === 0 ? 'h.anadir_primero' : 'h.anadir')}
               </button>
-              <button type="button" className="primario" disabled={viajeros.length === 0} onClick={() => setPantalla({ tipo: 'codigo' })}>
-                {tr('h.terminar')}
-              </button>
+              {viajeros.length > 0 && (
+                <button type="button" className="primario grande" onClick={() => setPantalla({ tipo: 'codigo' })}>
+                  {tr('h.terminar')}
+                  <Icono nombre="adelante" />
+                </button>
+              )}
             </div>
+            <AyudaHuesped idioma={idioma} />
           </section>
         )}
 
@@ -318,6 +332,27 @@ function HojaImpresion({ contenido, codigo }: { contenido: ContenidoFicha; codig
       </section>
       <p className="hoja-pie">{contenido.pie}</p>
     </div>
+  )
+}
+
+const PREGUNTAS_HUESPED = ['por_que', 'donde', 'documento', 'menores', 'codigo', 'error'] as const
+
+/** Preguntas frecuentes del huésped, en su idioma. */
+function AyudaHuesped({ idioma }: { idioma: Idioma }) {
+  return (
+    <section aria-labelledby="t-ayuda-huesped" className="no-imprimir">
+      <h2 id="t-ayuda-huesped">
+        <Icono nombre="ayuda" /> {t(idioma, 'h.ayuda.titulo')}
+      </h2>
+      {PREGUNTAS_HUESPED.map((k) => (
+        <details key={k} className="faq">
+          <summary>{t(idioma, `h.ayuda.${k}.p`)}</summary>
+          <div>
+            <p>{t(idioma, `h.ayuda.${k}.r`)}</p>
+          </div>
+        </details>
+      ))}
+    </section>
   )
 }
 

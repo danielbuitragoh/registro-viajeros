@@ -24,16 +24,17 @@ async function abrir(user: ReturnType<typeof userEvent.setup>, titulo: RegExp | 
 }
 
 describe('Pista «¿Qué es…?»', () => {
-  it('es un desplegable nativo: cerrado al principio, se abre con clic o teclado y se vuelve a cerrar', async () => {
+  // jsdom no abre <details> con el teclado (los navegadores sí): Enter/Espacio se prueban en el E2E del asistente
+  it('es un desplegable nativo (<details>/<summary>, enfocable): cerrado al principio, se abre y se vuelve a cerrar', async () => {
     const user = userEvent.setup()
     render(<Pista titulo="¿Qué es esto?">Explicación corta</Pista>)
-    const det = screen.getByText('¿Qué es esto?').closest('details') as HTMLDetailsElement
+    const resumen = screen.getByText('¿Qué es esto?').closest('summary') as HTMLElement
+    const det = resumen.closest('details') as HTMLDetailsElement
     expect(det.open).toBe(false)
-    screen.getByText('¿Qué es esto?').closest('summary')?.focus()
-    await user.keyboard('{Enter}')
+    await user.click(resumen)
     expect(det.open).toBe(true)
     expect(screen.getByText('Explicación corta')).toBeVisible()
-    await user.keyboard('{Enter}')
+    await user.click(resumen)
     expect(det.open).toBe(false)
   })
 })
@@ -111,7 +112,7 @@ describe('Guía contextual en la ficha del viajero', () => {
     async () => {
       const user = userEvent.setup()
       const { container } = formulario('de')
-      await user.selectOptions(screen.getByLabelText(/^Art des Dokuments/), 'NIF')
+      await user.selectOptions(screen.getByLabelText(/^Ausweisart/), 'NIF')
       for (const s of container.querySelectorAll('details.pista > summary')) await user.click(s as HTMLElement)
       expect(await axe(container)).toHaveNoViolations()
     },
