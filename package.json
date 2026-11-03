@@ -5,6 +5,9 @@
   "description": "Registro de viajeros libre y local-first para alojamientos pequeños en España (SES.Hospedajes). No oficial.",
   "license": "MIT",
   "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
@@ -17,6 +20,7 @@
     "ine:importar": "node scripts/importar-ine.ts"
   },
   "dependencies": {
+    "@danielbuitragoh/documentos-es": "*",
     "jsqr": "1.4.0",
     "qrcode": "^1.5.4",
     "react": "^19.3.1",

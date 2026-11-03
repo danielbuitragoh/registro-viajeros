@@ -1,0 +1,45 @@
+{
+  "name": "@danielbuitragoh/documentos-es",
+  "version": "0.1.0",
+  "description": "Validación de DNI/NIF, NIE y CIF españoles: letra de control, detección de tipo y mensajes en español e inglés. Sin dependencias, para navegador y Node.",
+  "keywords": ["dni", "nif", "nie", "cif", "españa", "spain", "validación", "validation", "tax-id", "typescript"],
+  "license": "MIT",
+  "author": "Daniel Buitrago",
+  "homepage": "https://github.com/danielbuitragoh/registro-viajeros/tree/main/packages/documentos-es#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/danielbuitragoh/registro-viajeros.git",
+    "directory": "packages/documentos-es"
+  },
+  "bugs": { "url": "https://github.com/danielbuitragoh/registro-viajeros/issues" },
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": ["dist", "README.md", "CHANGELOG.md", "LICENSE"],
+  "engines": { "node": ">=18" },
+  "publishConfig": { "access": "public", "provenance": true },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "clean": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\"",
+    "prebuild": "npm run clean",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "verificar": "node scripts/verificar-paquete.mjs",
+    "prepack": "npm run build"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "4.1.12",
+    "fast-check": "^4.10.2",
+    "typescript": "5.9",
+    "vitest": "^4.1.12"
+  }
+}
