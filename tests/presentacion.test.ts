@@ -1,5 +1,5 @@
 import { existsSync, readFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { dirname, join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { axeSinContraste as axe, TIMEOUT_AXE } from './axe'
 
@@ -87,7 +87,7 @@ describe.each(Object.entries(PAGINAS) as [keyof typeof PAGINAS, (typeof PAGINAS)
       expect(img.getAttribute('width')).toBeTruthy()
       expect(img.getAttribute('height')).toBeTruthy()
       expect(img.getAttribute('loading')).toBe('lazy')
-      expect(existsSync(join(raiz, 'public', (img.getAttribute('src') ?? '').replace(/^(\.\.\/)+/, ''))), img.getAttribute('src') ?? '').toBe(true)
+      expect(existsSync(join(raiz, dirname(p.fichero), img.getAttribute('src') ?? '')), img.getAttribute('src') ?? '').toBe(true)
     }
     expect(readFileSync(join(raiz, p.fichero), 'utf8')).toContain('<!--CSP-->')
   })
