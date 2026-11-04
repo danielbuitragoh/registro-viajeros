@@ -216,7 +216,7 @@ export const it: Record<ClaveTexto, string> = {
   'f.apellido2.texto': 'Con il DNI spagnolo è obbligatorio, perché compare sul documento. Con altri documenti, compilalo solo se ne hai uno.',
   'f.ine.titulo': 'Che cos’è il codice INE?',
   'f.ine.texto': 'È il codice ufficiale di 5 cifre di ogni comune spagnolo: 2 per la provincia e 3 per il comune. Non è il codice postale.',
-  'f.ine.ejemplo': 'Esempio (fittizio): {codigo} = provincia {provincia} + comune {municipio}.',
+  'f.ine.ejemplo': 'Esempio: {codigo} = provincia {provincia} + comune {municipio}.',
   'f.ine.huesped': 'Se non lo conosci, lascialo vuoto: lo completerà la reception.',
   'f.ine.recepcion': 'Scrivi il nome del comune e sceglilo dall’elenco: il codice si compila da solo. Se l’app non include l’elenco dei comuni, cercalo nella «Relación de municipios y sus códigos por provincias» dell’INE.',
   'f.telefono.titulo': 'Telefono di un altro paese?',

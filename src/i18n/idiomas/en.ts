@@ -209,7 +209,7 @@ export const en: Record<ClaveTexto, string> = {
   'f.apellido2.texto': 'With a Spanish DNI it is mandatory, because it appears on the document. With other documents, fill it in only if you have one.',
   'f.ine.titulo': 'What is the INE code?',
   'f.ine.texto': 'It is the official 5-digit code of each Spanish municipality: 2 digits for the province and 3 for the municipality. It is not the postcode.',
-  'f.ine.ejemplo': 'Example (fictitious): {codigo} = province {provincia} + municipality {municipio}.',
+  'f.ine.ejemplo': 'Example: {codigo} = province {provincia} + municipality {municipio}.',
   'f.ine.huesped': 'If you don’t know it, leave it blank: reception will fill it in.',
   'f.ine.recepcion': 'Type the name of the municipality and pick it from the list so the code fills in automatically. If the app does not include the list of municipalities, look it up in the INE “Relación de municipios y sus códigos por provincias”.',
   'f.telefono.titulo': 'Phone number from another country?',

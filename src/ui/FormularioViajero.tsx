@@ -16,8 +16,8 @@ import { esCodigo, TIPO_DOCUMENTO } from '../oficial/codigos'
 import { Pista } from './Pista'
 import { IlustracionSoporte } from './Ilustraciones'
 
-/** Código INE de ejemplo: el de la muestra FICTICIA de la demo (provincia 99, que no existe). Nunca un código real inventado. */
-const INE_EJEMPLO = { codigo: '99001', provincia: '99', municipio: '001' }
+/** Código INE de ejemplo: uno REAL de la relación oficial del INE (28079 = Madrid; lo comprueba tests/ine/oficial.test.ts). */
+const INE_EJEMPLO = { codigo: '28079', provincia: '28', municipio: '079' }
 
 export interface AdultoRef {
   id: string

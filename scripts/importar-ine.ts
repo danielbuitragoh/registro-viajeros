@@ -4,7 +4,7 @@
  *   npm run ine:importar -- docs/oficial/ine/<fichero del INE>.xlsx [--fecha AAAA-MM-DD]
  *
  * Escribe src/oficial/ine/municipios-AAAA-MM-DD.json y muestra los cambios respecto a la relación anterior
- * (altas, bajas —p. ej. fusiones— y cambios de nombre). Solo para la muestra ficticia de pruebas/demo: --ficticia.
+ * (altas, bajas —p. ej. fusiones— y cambios de nombre). --ficticia es solo para generar muestras de prueba (nunca se usa en la app).
  * Necesita Node 22.18 o posterior (ejecuta TypeScript directamente).
  */
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'

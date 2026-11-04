@@ -41,8 +41,8 @@ test('sin conexión tras la primera carga: recepción, autocompletado de municip
   await page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: 'Ajustes', exact: true }).click()
   await page.getByRole('list', { name: 'Apartados de Ajustes' }).getByRole('link', { name: /Establecimiento/ }).click()
   const municipio = page.getByRole('combobox', { name: /^Nombre del municipio/ })
-  await municipio.fill('aldea')
-  await expect(page.getByRole('listbox').getByRole('option')).toHaveText(['Aldea de Prueba — 99002'])
+  await municipio.fill('bilbao')
+  await expect(page.getByRole('listbox').getByRole('option')).toHaveText(['Bilbao — 48020'])
 
   // Exportación (genera y valida el XML en el propio navegador)
   await page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: 'Exportar', exact: true }).click()

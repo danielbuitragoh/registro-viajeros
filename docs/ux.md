@@ -87,8 +87,8 @@ Crear contraseña → aterriza en «Lista del día» **vacía** con un aviso «C
 - **Tema.** Claro u oscuro según el sistema; se puede fijar en *Ajustes → Apariencia* (se recuerda en este navegador:
   no es un dato personal).
 - **Ejemplos visuales.** Ilustraciones esquemáticas propias («ilustración: no es un documento real»), sin copiar el
-  diseño de documentos oficiales. Los números de ejemplo son ficticios con letra de control correcta; el código INE de
-  ejemplo es el de la muestra ficticia (99001), nunca un código inventado presentado como real.
+  diseño de documentos oficiales. Los números de documento de ejemplo son ficticios con letra de control correcta; el código INE de
+  ejemplo es uno real de la relación oficial del INE (28079 = Madrid), nunca un código inventado.
 - **Cero peticiones a otros orígenes**, todo local y cifrado: se mantiene la guardia E2E en todas las pruebas nuevas.
 
 ### Cómo se comprueba

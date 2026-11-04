@@ -20,8 +20,8 @@ const iso = (d: Date) => {
 const dia = (d: Date) => iso(d).slice(0, 10)
 const mas = (base: Date, horas: number) => new Date(base.getTime() + horas * 3_600_000)
 
-// Municipio de la muestra FICTICIA del INE de la demo (provincia 99, que no existe): ver src/demo/ine/
-const domicilioDemo = { direccion: 'Calle Inventada 12, 3ºB', codigoMunicipio: '99001', nombreMunicipio: 'Villaficticia', codigoPostal: '99001', pais: 'ESP' }
+// Domicilio inventado (calle y número) en un municipio REAL: el código INE es el de la relación oficial del INE (28079 = Madrid)
+const domicilioDemo = { direccion: 'Calle Inventada 12, 3ºB', codigoMunicipio: '28079', nombreMunicipio: 'Madrid', codigoPostal: '28001', pais: 'ESP' }
 
 function adulto(id: string, nombre: string, ap1: string, ap2: string, n: number, extra: Partial<Viajero> = {}): Viajero {
   return {
@@ -156,7 +156,7 @@ export function crearDatosDemo(ahora: Date): { establecimiento: Establecimiento;
       codigoArrendador: 'DEMO-ARR',
       nombre: 'Hostal Demo (ficticio)',
       tipo: 'HOSTAL',
-      direccion: { direccion: 'Calle Inventada 7', codigoMunicipio: '99002', nombreMunicipio: 'Aldea de Prueba', codigoPostal: '99002', pais: 'ESP' },
+      direccion: { direccion: 'Calle Inventada 7', codigoMunicipio: '41091', nombreMunicipio: 'Sevilla', codigoPostal: '41001', pais: 'ESP' },
     },
     reservas,
   }

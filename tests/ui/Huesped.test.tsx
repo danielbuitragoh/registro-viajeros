@@ -23,7 +23,7 @@ async function anadirAdulto(user: ReturnType<typeof userEvent.setup>, nombre = '
   await user.type(screen.getByLabelText(/Número de soporte/), 'ABC123456')
   await user.type(screen.getByLabelText(/Dirección \(calle/), 'Calle Falsa 123')
   await user.type(screen.getByLabelText(/Código postal/), '28001')
-  await user.type(screen.getByLabelText(/Nombre del municipio/), 'Madrid')
+  await user.type(screen.getByLabelText(/Nombre del municipio/, { selector: 'input' }), 'Madrid')
   await user.type(screen.getByLabelText('Teléfono'), '600123456')
   await user.click(screen.getByRole('button', { name: 'Guardar viajero' }))
 }

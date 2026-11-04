@@ -85,7 +85,7 @@ El análisis de los recorridos (primer uso, recepción, huésped, exportar, copi
 
 - **Asistente de primeros pasos** (6 pasos, progreso, *Atrás*, *Saltar* y retomar desde Ajustes) con una reserva de prueba.
 - **Navegación por frecuencia de uso:** Hoy → Reservas → Exportar → Ajustes → Ayuda, con **icono y texto**; **migas de pan** en reservas y en las subpáginas de Ajustes; atajos grandes en «Hoy».
-- **Guía contextual:** «¿Qué es…?» desplegable junto a cada campo difícil (tipo de documento, número de soporte con **ilustración esquemática**, código INE con un ejemplo de la muestra ficticia, código de establecimiento, segundo apellido, teléfono extranjero, menores, 24 h, forma de pago); **estados vacíos** que dicen qué hacer; página **Ayuda** con 14 preguntas frecuentes y buscador; preguntas frecuentes también para el huésped.
+- **Guía contextual:** «¿Qué es…?» desplegable junto a cada campo difícil (tipo de documento, número de soporte con **ilustración esquemática**, código INE con un ejemplo real (28079 = Madrid), código de establecimiento, segundo apellido, teléfono extranjero, menores, 24 h, forma de pago); **estados vacíos** que dicen qué hacer; página **Ayuda** con 14 preguntas frecuentes y buscador; preguntas frecuentes también para el huésped.
 - **Sistema de diseño** único para la app y la presentación (`src/diseno/tokens.css`: color, tipografía, espaciado, forma y tamaño táctil), **modo oscuro** (automático o elegido en *Ajustes → Apariencia*), contraste AA comprobado numéricamente en los dos temas y con axe en navegador real, objetivos táctiles de 48–56 px, estados con icono y texto.
 - **Idiomas:** la recepción está en español; todo lo que ve el **huésped** (formulario, guía de cada campo, tipos de documento y preguntas frecuentes) está en los 6 idiomas. **Las traducciones al francés, alemán, italiano y portugués necesitan revisión de una persona nativa**, también los 44 textos nuevos de la guía y la ayuda de esta versión.
 
@@ -106,14 +106,29 @@ Además, el §3 dice que el número «deberá corresponder al tipo de documento�
 
 En recepción (y, opcionalmente, en el formulario del huésped y en *Ajustes → Establecimiento*), el campo **Nombre del municipio** sugiere municipios mientras escribes; al elegir uno, el **código INE se rellena solo**. Funciona sin conexión: la relación va dentro de la app. Busca sin tildes, con el artículo delante («Las Rozas…» aunque el INE escriba «Rozas…, Las») y por cualquier parte de un nombre bilingüe; los municipios de la provincia del código postal salen primero (solo ordena, no valida).
 
-**De dónde salen los datos: SOLO del fichero oficial del INE** «Relación de municipios y sus códigos por provincias». No se descargan ni se teclean códigos de ninguna otra fuente. **Este repositorio todavía no incluye ese fichero**, así que hoy:
+**De dónde salen los datos: SOLO del fichero oficial del INE** «Relación de municipios y sus códigos por provincias». No se descargan ni se teclean códigos de ninguna otra fuente. El repositorio incluye el fichero tal cual lo publica el INE y el JSON que se genera a partir de él:
 
-- la **app normal** no trae relación y el código se escribe a mano (lo indica junto al campo);
-- la **demo** usa una **muestra FICTICIA** (provincias 98 y 99, que no existen; ver `tests/fixtures/ine/LEEME-FICTICIO.md`) para que se vea cómo funciona. Los domicilios de la demo usan esos municipios inventados.
+| | |
+|---|---|
+| **Fichero oficial** | [`docs/oficial/ine/diccionario25.xlsx`](docs/oficial/ine/diccionario25.xlsx), sin modificar (una prueba comprueba su tamaño y su huella) |
+| **Origen** | <https://www.ine.es/daco/daco42/codmun/codmun25/diccionario25.xlsx> |
+| **Fecha de referencia** | municipios referidos al **1 de enero de 2025**. Es el **último fichero publicado** por el INE en esa página a 4-11-2026: el de 2026 todavía no está publicado. Cuando lo esté, se actualiza con el procedimiento de más abajo |
+| **Tamaño y huella** | 306.558 bytes · SHA-256 `5cf83d5b9c68b4c39650b2f38cd60d817a2c9f90acc618b603e8c17ebd12ad07` |
+| **Resultado** | [`src/oficial/ine/municipios-2025-01-01.json`](src/oficial/ine/municipios-2025-01-01.json): **8.132 municipios** en las **52 provincias** (01–52), 152 kB sin comprimir |
 
-### Cómo añadir el fichero oficial (una vez al año)
+La app —**también la demo**— usa esa relación. La demo ya no lleva códigos ficticios: los datos de las personas siguen siendo inventados, pero el municipio de sus domicilios es real y su código sale del fichero del INE (Madrid `28079`, Sevilla `41091`); la calle y el número son inventados. Si algún día no hubiera ningún JSON oficial en `src/oficial/ine/`, la app no traería relación y el código se escribiría a mano (lo indica junto al campo): nunca se rellena con un código que no salga del INE. Las muestras ficticias de `tests/fixtures/ine/` (provincias 98 y 99) son solo datos de prueba del importador y no llegan a la app.
 
-1. Descarga de la web del INE la «Relación de municipios y sus códigos por provincias» más reciente (es la que tiene fecha a 1 de enero). Si viene en `.xls` antiguo, ábrelo con Excel o LibreOffice y guárdalo como `.xlsx` **sin tocar nada más**.
+### Cómo regenerar el JSON y cómo actualizarlo (una vez al año)
+
+Para **regenerar** el JSON actual a partir del fichero guardado (debe quedar idéntico; una prueba lo comprueba):
+
+```bash
+npm run ine:importar -- docs/oficial/ine/diccionario25.xlsx --fecha 2025-01-01
+```
+
+Para **actualizarlo** cuando el INE publique una relación nueva:
+
+1. Descarga de la web del INE la «Relación de municipios y sus códigos por provincias» más reciente (es la que tiene fecha a 1 de enero; la de 2025 está en <https://www.ine.es/daco/daco42/codmun/codmun25/diccionario25.xlsx>; busca en la misma web del INE si hay una más reciente). El INE puede bloquear las descargas automáticas: si pasa, bájala con tu navegador. Si viene en `.xls` antiguo, ábrelo con Excel o LibreOffice y guárdalo como `.xlsx` **sin tocar nada más**.
 2. Cópialo **tal cual** en `docs/oficial/ine/` (p. ej. `docs/oficial/ine/diccionario26.xlsx`).
 3. Ejecuta (Node 22.18 o posterior):
    ```bash
@@ -124,7 +139,7 @@ En recepción (y, opcionalmente, en el formulario del huésped y en *Ajustes →
 
 Qué comprueba el importador: que estén las columnas `CPRO`, `CMUN` y `NOMBRE` (en cualquier fila y orden), que cada código tenga sus cifras, que no haya códigos repetidos y que la fecha sea coherente. **Si algo no cuadra, se detiene y lo explica; nunca adivina.** El código de 5 dígitos es `CPRO` (2) + `CMUN` (3); el dígito de control `DC` no se usa (ver P15). Una prueba de guardia comprueba que **cada JSON de `src/oficial/ine/` se regenera idéntico desde su fichero en `docs/oficial/ine/` (misma huella SHA-256)** y que todo fichero oficial tiene su JSON: así nadie puede colar códigos que no salgan del INE. Si hay relación oficial, la muestra ficticia no se usa nunca, ni siquiera en la demo.
 
-> **Aviso honesto:** el lector se ha probado con muestras ficticias que imitan la forma de la relación (fila de título con la fecha, cabecera `CODAUTO · CPRO · CMUN · DC · NOMBRE`), escritas con otro programa (openpyxl) y en CSV Windows-1252. **No se ha probado con el fichero real del INE**: la primera vez, revisa el resumen que imprime el script (nº de municipios, fecha) antes de hacer commit.
+> **Qué se ha comprobado con el fichero real:** el lector se probó primero con muestras ficticias que imitan la forma de la relación y, con `diccionario25.xlsx`, se ha ejecutado de verdad (fila de título con la fecha, cabecera `CODAUTO · CPRO · CMUN · DC · NOMBRE`). Además se contrastó **una vez, a mano**, con una lectura independiente del XML de la hoja hecha con otro programa: los mismos 8.132 códigos con los mismos nombres. Con cada fichero nuevo, revisa de todos modos el resumen que imprime el script (nº de municipios, fecha y cambios respecto a la relación anterior) antes de hacer commit.
 
 ### Municipios que cambian de código (fusiones, altas) según la fecha de la relación
 
@@ -134,7 +149,7 @@ La relación es una foto a una fecha. La app usa la **más reciente** que tenga 
 - **figuraba en una relación anterior y ya no** (si conservas también la del año anterior en `docs/oficial/ine/` y su JSON) → probablemente una fusión: busca el municipio actual;
 - **el nombre escrito no es el de ese código** → revisa uno de los dos.
 
-Conserva al menos la relación del año anterior para que la app detecte las bajas. Cada relación es un trozo aparte (del orden de 150 kB sin comprimir, estimado para unos 8 100 municipios) que se carga solo al usarlo y que el *service worker* guarda para usarlo sin conexión.
+Conserva al menos la relación del año anterior para que la app detecte las bajas (hoy el repositorio solo tiene la de 2025, así que todavía no hay bajas que detectar). Cada relación es un trozo aparte (152 kB sin comprimir y 62 kB comprimida con gzip, para 8.132 municipios) que se carga solo al usarlo —no pesa en la primera pantalla— y que el *service worker* guarda para usarlo sin conexión.
 
 ## Decisiones de diseño
 
@@ -163,7 +178,7 @@ Fuente única de verdad: [`docs/oficial/Instrucciones.pdf`](docs/oficial/Instruc
 | P1 | El PDF no incluye XSD ni espacio de nombres ni declaración XML | Emite `<?xml … UTF-8?>` y elementos sin namespace. **Contrastar con la plantilla real del portal** |
 | P2 | La tabla del §3 dice `documento`; la figura 1 y el §4 dicen `numeroDocumento` | Usa `numeroDocumento` |
 | P3 | Formato del campo `internet` (Booleano) sin definir | No lo emite (es opcional) |
-| P4 | No hay tabla de municipios INE ni de países | INE: formato (5 dígitos) y, si se añade el fichero oficial del INE, autocompletado y avisos ([ver arriba](#códigos-de-municipio-ine-autocompletado-sin-red)). Países: lista ISO 3166-1 (norma citada por el PDF), revisar vigencia |
+| P4 | No hay tabla de municipios INE ni de países | INE: formato (5 dígitos), autocompletado y avisos con la relación oficial del INE a 1-1-2025 ([ver arriba](#códigos-de-municipio-ine-autocompletado-sin-red)). Países: lista ISO 3166-1 (norma citada por el PDF), revisar vigencia |
 | P5 | El PDF no tiene «código de arrendador» | Dato interno opcional, **no se exporta** |
 | P6 | «Mayor de edad» sin definir | 18 años a la fecha de entrada |
 | P7 | `parentesco` es un solo campo por persona sin decir a qué menor se refiere | Se informa en el adulto acompañante; con varios menores y parentescos distintos, aviso |
