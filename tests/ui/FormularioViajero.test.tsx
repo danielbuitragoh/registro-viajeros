@@ -27,7 +27,7 @@ function rellenarAdulto(user: ReturnType<typeof userEvent.setup>, doc = '1234567
     await user.type(screen.getByLabelText(/Número de soporte/), 'ABC123456')
     await user.type(screen.getByLabelText(/Dirección \(calle/), 'Calle Falsa 123')
     await user.type(screen.getByLabelText(/Código postal/), '28001')
-    await user.type(screen.getByLabelText(/Nombre del municipio/), 'Madrid')
+    await user.type(screen.getByLabelText(/Nombre del municipio/, { selector: 'input' }), 'Madrid')
     await user.type(screen.getByLabelText(/^Teléfono/), '600123456')
   })()
 }

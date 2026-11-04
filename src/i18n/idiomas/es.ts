@@ -214,7 +214,7 @@ export const es = {
   'f.apellido2.texto': 'Con DNI español es obligatorio, porque figura en el documento. Con otros documentos, rellénalo solo si lo tienes.',
   'f.ine.titulo': '¿Qué es el código INE?',
   'f.ine.texto': 'Es el código oficial de 5 números de cada municipio de España: 2 de la provincia y 3 del municipio. No es el código postal.',
-  'f.ine.ejemplo': 'Ejemplo (ficticio): {codigo} = provincia {provincia} + municipio {municipio}.',
+  'f.ine.ejemplo': 'Ejemplo: {codigo} = provincia {provincia} + municipio {municipio}.',
   'f.ine.huesped': 'Si no lo sabes, déjalo en blanco: recepción lo completa.',
   'f.ine.recepcion': 'Escribe el nombre del municipio y elígelo en la lista para que el código se rellene solo. Si la app no trae la relación de municipios, búscalo en la «Relación de municipios y sus códigos por provincias» del INE.',
   'f.telefono.titulo': '¿Teléfono de otro país?',

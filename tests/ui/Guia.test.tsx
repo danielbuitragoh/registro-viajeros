@@ -73,12 +73,12 @@ describe('Guía contextual en la ficha del viajero', () => {
     expect(within(c).getByText(/no es un documento real/)).toBeInTheDocument()
   })
 
-  it('«¿Qué es el código INE?»: 5 números, no es el código postal; ejemplo de la muestra FICTICIA; el huésped puede dejarlo en blanco', async () => {
+  it('«¿Qué es el código INE?»: 5 números, no es el código postal; ejemplo real (28079 = Madrid); el huésped puede dejarlo en blanco', async () => {
     const user = userEvent.setup()
     formulario('es', 'huesped')
     const c = await abrir(user, '¿Qué es el código INE?')
     expect(within(c).getByText(/No es el código postal/)).toBeInTheDocument()
-    expect(within(c).getByText(/Ejemplo \(ficticio\): 99001 = provincia 99 \+ municipio 001/)).toBeInTheDocument()
+    expect(within(c).getByText(/Ejemplo: 28079 = provincia 28 \+ municipio 079/)).toBeInTheDocument()
     expect(within(c).getByText(/déjalo en blanco: recepción lo completa/)).toBeInTheDocument()
   })
 
