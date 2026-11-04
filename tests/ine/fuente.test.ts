@@ -30,33 +30,19 @@ describe('origen de los códigos INE', () => {
     const usados = jsons('src/oficial/ine').map((j) => JSON.parse(readFileSync(join(raiz, 'src/oficial/ine', j), 'utf8')).origen.fichero)
     expect(usados).toContain(f)
   })
-
-  it.each(jsons('src/demo/ine'))('la muestra de la demo src/demo/ine/%s es FICTICIA y sale de tests/fixtures/ine/', async (f) => {
-    const texto = readFileSync(join(raiz, 'src/demo/ine', f), 'utf8')
-    const datos = JSON.parse(texto)
-    expect(datos.ficticia).toBe(true)
-    const bytes = new Uint8Array(readFileSync(join(raiz, 'tests/fixtures/ine', datos.origen.fichero)))
-    expect((await importar(bytes, datos.origen.fichero, { ficticia: true })).json).toBe(texto)
-    // Provincias 98 y 99: no existen, así que ningún código ficticio puede confundirse con uno real
-    for (const p of Object.keys(datos.provincias)) expect(['98', '99']).toContain(p)
-  })
-
-  it('hay muestra ficticia para la demo (dos fechas, para ver altas y fusiones)', () => {
-    expect(jsons('src/demo/ine')).toEqual(['municipios-2025-01-01.json', 'municipios-2026-01-01.json'])
-  })
 })
 
 describe('elegirFuente: qué relaciones usa la app', () => {
-  const of = { 'a/municipios-2025-01-01.json': 'oficial' }
-  const de = { 'b/municipios-2026-01-01.json': 'demo' }
-
-  it('si hay relaciones oficiales usa SOLO esas, también en la demo (nunca mezcla datos ficticios con oficiales)', () => {
-    expect(elegirFuente(of, de, true)).toEqual({ origen: 'oficial', cargadores: ['oficial'] })
-    expect(elegirFuente(of, de, false)).toEqual({ origen: 'oficial', cargadores: ['oficial'] })
+  it('usa SOLO las oficiales, la más reciente primero', () => {
+    const of = { 'a/municipios-2025-01-01.json': 'v2025', 'a/municipios-2026-01-01.json': 'v2026' }
+    expect(elegirFuente(of)).toEqual({ origen: 'oficial', cargadores: ['v2026', 'v2025'] })
   })
 
-  it('sin relación oficial: la demo usa la muestra ficticia y la app normal no tiene relación (código a mano)', () => {
-    expect(elegirFuente({}, de, true)).toEqual({ origen: 'ficticia', cargadores: ['demo'] })
-    expect(elegirFuente({}, de, false)).toEqual({ origen: 'ninguna', cargadores: [] })
+  it('sin relación oficial no hay relación (el código INE se escribe a mano): nunca se inventa uno', () => {
+    expect(elegirFuente({})).toEqual({ origen: 'ninguna', cargadores: [] })
+  })
+
+  it('en el repositorio no queda ninguna muestra ficticia de la app (src/demo/ine ya no existe)', () => {
+    expect(existsSync(join(raiz, 'src/demo/ine'))).toBe(false)
   })
 })
