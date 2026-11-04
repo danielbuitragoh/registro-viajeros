@@ -13,7 +13,9 @@ export const ENTIDADES_SOLO_DIGITO = ['A', 'B', 'E', 'H']
 export const ENTIDADES_AMBOS = ['C', 'D', 'F', 'G', 'J', 'U', 'V']
 export const ENTIDADES = [...ENTIDADES_SOLO_LETRA, ...ENTIDADES_SOLO_DIGITO, ...ENTIDADES_AMBOS]
 
-const SEPARADORES = new Set([' ', '\t', '\n', '\r', '\f', '\v', ' ', '.', '-', '_'])
+// Todos los espacios Unicode que quita `\s` (con su punto de código, para que no se confundan a la vista), más . - _
+const ESPACIOS_UNICODE = [0x20, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0xa0, 0x1680, ...Array.from({ length: 11 }, (_, i) => 0x2000 + i), 0x2028, 0x2029, 0x202f, 0x205f, 0x3000, 0xfeff]
+const SEPARADORES = new Set([...ESPACIOS_UNICODE.map((c) => String.fromCodePoint(c)), '.', '-', '_'])
 
 export function refNormalizar(s: string): string {
   return [...s.toUpperCase()].filter((c) => !SEPARADORES.has(c)).join('')
