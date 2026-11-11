@@ -92,6 +92,10 @@ main:focus { outline: none; }
 main { max-width: var(--ancho-max); margin: 0 auto; padding: var(--e-2) var(--e-4) var(--e-7); }
 .pagina-huesped { max-width: 40rem; }
 .pagina-acceso { max-width: 38rem; margin: 0 auto; padding: var(--e-4); }
+/* La entrada a la demo va encima del formulario de acceso: sin relleno inferior para que no se dupliquen los márgenes. */
+.entrada-demo { padding-bottom: 0; }
+.entrada-demo .tarjeta { margin: 0; }
+.entrada-demo p { margin-top: 0; }
 .pie { max-width: var(--ancho-max); margin: 0 auto; padding: var(--e-4); border-top: 1px solid var(--borde-suave); color: var(--texto-suave); font-size: var(--fs-s); }
 .banner-demo { margin: 0; padding: var(--e-2) var(--e-4); background: var(--aviso-fondo); color: var(--aviso); border-bottom: 2px solid var(--aviso); text-align: center; font-weight: 600; }
 
