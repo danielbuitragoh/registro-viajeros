@@ -16,6 +16,26 @@ export function Puerta() {
   const crear = app.fase === 'sin_almacen'
   return (
     <>
+      {/* En la demo, la entrada va ARRIBA: quien llega desde el portafolio no debería tener que bajar dos
+          pantallas, ni creer que hay que crear una contraseña, para ver la app funcionando. */}
+      {esDemo && crear && (
+        // Una sección con nombre es una región: el texto no queda fuera de los puntos de referencia de la página.
+        <section className="pagina-acceso entrada-demo" aria-label="Entrada a la demo">
+          <div className="tarjeta tarjeta-info">
+            <p>
+              <strong>Esto es una demo.</strong> Puedes entrar ya, con datos ficticios, sin crear ninguna contraseña.
+            </p>
+            <button
+              type="button"
+              className="primario"
+              // Todo se guarda antes de mostrar la recepción (ver AppProvider.crear)
+              onClick={() => app.crear(PASSWORD_DEMO, crearDatosDemo(app.ahora()))}
+            >
+              Entrar a la demo con datos ficticios
+            </button>
+          </div>
+        </section>
+      )}
       <Acceso
         key={app.fase}
         modo={crear ? 'crear' : 'abrir'}
@@ -23,18 +43,6 @@ export function Puerta() {
         onAbrir={app.desbloquear}
         pistaDemo={esDemo ? `Esto es una demo con datos ficticios. Contraseña: ${PASSWORD_DEMO}` : undefined}
       />
-      {esDemo && crear && (
-        <div className="pagina-acceso">
-          <button
-            type="button"
-            className="secundario"
-            // Todo se guarda antes de mostrar la recepción (ver AppProvider.crear)
-            onClick={() => app.crear(PASSWORD_DEMO, crearDatosDemo(app.ahora()))}
-          >
-            Entrar a la demo con datos ficticios
-          </button>
-        </div>
-      )}
     </>
   )
 }
